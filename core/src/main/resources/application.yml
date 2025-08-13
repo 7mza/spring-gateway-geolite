@@ -1,17 +1,15 @@
-geoip2:
+geolite:
   db:
-    asn: geoip2/GeoLite2-ASN.mmdb
-    city: geoip2/GeoLite2-City.mmdb
-    country: geoip2/GeoLite2-Country.mmdb
-  loadOnStartUp: false
-  mdcKey: visitor_infos
+    asn: geolite/GeoLite2-ASN.mmdb
+    city: geolite/GeoLite2-City.mmdb
+    country: geolite/GeoLite2-Country.mmdb
+  baggage: visitor_info
   maxTrustedIndex: 1
 management:
   tracing:
-    # baggage: https://docs.spring.io/spring-boot/reference/actuator/tracing.html
     baggage:
       correlation:
         fields:
-          - ${geoip2.mdcKey}
+          - ${geolite.baggage}
       remote-fields:
-      - ${geoip2.mdcKey}
+        - ${geolite.baggage}

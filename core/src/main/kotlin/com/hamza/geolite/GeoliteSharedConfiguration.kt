@@ -12,15 +12,15 @@ import org.springframework.core.annotation.Order
 @AutoConfiguration
 class GeoliteSharedConfiguration {
     @Order(Ordered.LOWEST_PRECEDENCE)
-    @Bean(name = ["GeoIP2ObjectMapper"], defaultCandidate = false)
+    @Bean(name = ["GeoLiteObjectMapper"], defaultCandidate = false)
     fun objectMapper(): ObjectMapper =
         ObjectMapper().apply {
             registerKotlinModule()
         }
 
     @Order(Ordered.LOWEST_PRECEDENCE)
-    @Bean(name = ["GeoIP2XForwardedResolver"], defaultCandidate = false)
+    @Bean(name = ["GeoLiteForwardedResolver"], defaultCandidate = false)
     fun getXForwardedRemoteAddressResolver(
-        @Value($$"${geoip2.maxTrustedIndex}") maxTrustedIndex: Int,
+        @Value($$"${geolite.maxTrustedIndex}") maxTrustedIndex: Int,
     ): XForwardedRemoteAddressResolver = XForwardedRemoteAddressResolver.maxTrustedIndex(maxTrustedIndex)
 }

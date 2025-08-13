@@ -22,31 +22,33 @@ class GeoliteConfiguration {
     @Bean("ReactiveFileReader")
     fun fileReader(resourceLoader: ResourceLoader): IFileReader = FileReader(resourceLoader)
 
-    @Bean("ReactiveGeoIP2Service")
-    fun geoIP2Service(
+    @Bean("ReactiveGeoLiteService")
+    fun geoLiteService(
         @Qualifier("ReactiveFileReader") fileReader: IFileReader,
-        @Value($$"${geoip2.db.city}") cityDbPath: String,
-        @Value($$"${geoip2.loadOnStartUp}") loadOnStartUp: Boolean,
-    ): IGeoIP2Service =
-        GeoIP2Service(
+        @Value($$"${geolite.db.city}") cityDbPath: String,
+        @Value($$"${geolite.db.country}") countryDbPath: String,
+        @Value($$"${geolite.db.asn}") asnDbPath: String,
+    ): IGeoLiteService =
+        GeoLiteService(
             fileReader = fileReader,
             cityDbPath = cityDbPath,
-            loadOnStartUp = loadOnStartUp,
+            countryDbPath = countryDbPath,
+            asnDbPath = asnDbPath,
         )
 
     @Bean
-    fun geoIP2Filter(
-        @Qualifier("ReactiveGeoIP2Service") geoIP2Service: IGeoIP2Service,
-        @Qualifier("GeoIP2ObjectMapper") objectMapper: ObjectMapper,
+    fun geoLiteFilter(
+        @Qualifier("ReactiveGeoLiteService") geoLiteService: IGeoLiteService,
+        @Qualifier("GeoLiteObjectMapper") objectMapper: ObjectMapper,
         tracer: Tracer,
-        @Qualifier("GeoIP2XForwardedResolver") resolver: XForwardedRemoteAddressResolver,
-        @Value($$"${geoip2.mdcKey}") mdcKey: String,
-    ): AbstractGatewayFilterFactory<GeoIP2GatewayFilterFactory.Companion.Config> =
-        GeoIP2GatewayFilterFactory(
-            geoIP2Service = geoIP2Service,
+        @Qualifier("GeoLiteForwardedResolver") resolver: XForwardedRemoteAddressResolver,
+        @Value($$"${geolite.baggage}") baggage: String,
+    ): AbstractGatewayFilterFactory<GeoLiteGatewayFilterFactory.Companion.Config> =
+        GeoLiteGatewayFilterFactory(
+            geoLiteService = geoLiteService,
             objectMapper = objectMapper,
             tracer = tracer,
             resolver = resolver,
-            mdcKey = mdcKey,
+            baggage = baggage,
         )
 }

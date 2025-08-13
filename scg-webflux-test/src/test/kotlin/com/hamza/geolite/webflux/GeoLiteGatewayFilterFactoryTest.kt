@@ -8,7 +8,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.reset
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.hamza.geolite.Commons
-import com.hamza.geolite.GeoIP2Data
+import com.hamza.geolite.GeoLiteData
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Disabled
@@ -32,18 +32,18 @@ import java.net.InetSocketAddress
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureObservability
-class GeoIP2GatewayFilterFactoryTest {
+class GeoLiteGatewayFilterFactoryTest {
     @Autowired
     private lateinit var webTestClient: WebTestClient
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
 
-    @MockitoBean("GeoIP2XForwardedResolver")
+    @MockitoBean("GeoLiteForwardedResolver")
     private lateinit var resolver: XForwardedRemoteAddressResolver
 
-    private var geoIP2Data =
-        GeoIP2Data(
+    private var geoLiteData =
+        GeoLiteData(
             city = "Minneapolis",
             cityIsoCode = "MN",
             country = "United States",
@@ -57,7 +57,7 @@ class GeoIP2GatewayFilterFactoryTest {
 
     // https://docs.spring.io/spring-boot/reference/actuator/tracing.html#actuator.micrometer-tracing.baggage
     @Test
-    fun `ReactiveGeoIP2 filter should populate tracing context with lookupCity response`() {
+    fun `GeoLite filter should populate tracing context with city response`() {
         val inetAddress = mock(InetAddress::class.java)
         whenever(inetAddress.hostAddress)
             .thenReturn("128.101.101.10")
@@ -67,7 +67,7 @@ class GeoIP2GatewayFilterFactoryTest {
         stubFor(
             get(urlEqualTo("/stub"))
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_HTML_VALUE))
-                .withHeader("visitor_info", equalTo(Commons.writeJson(geoIP2Data, objectMapper)))
+                .withHeader("visitor_info", equalTo(Commons.writeJson(geoLiteData, objectMapper)))
                 .willReturn(
                     aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
@@ -95,6 +95,6 @@ class GeoIP2GatewayFilterFactoryTest {
     @Disabled
     @Test
     fun mdc() {
-        // FIXME: access mdc from reactor and check for visitor_info
+        // FIXME: access mdc from reactor and check for configured baggage existence and value
     }
 }

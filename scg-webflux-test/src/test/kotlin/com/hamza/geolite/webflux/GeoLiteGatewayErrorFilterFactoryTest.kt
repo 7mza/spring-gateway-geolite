@@ -17,16 +17,16 @@ import org.springframework.test.web.reactive.server.WebTestClient
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = ["geoip2.db.city=zebi"],
+    properties = ["geolite.db.city=zebi"],
 )
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureObservability
-class GeoIP2GatewayErrorFilterFactoryTest {
+class GeoLiteGatewayErrorFilterFactoryTest {
     @Autowired
     private lateinit var webTestClient: WebTestClient
 
     @Test
-    fun `ReactiveGeoIP2 filter should continue chain if db file is unreachable`() {
+    fun `GeoLite filter should continue chain if db file is unreachable`() {
         stubFor(
             get(urlEqualTo("/stub"))
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_HTML_VALUE))

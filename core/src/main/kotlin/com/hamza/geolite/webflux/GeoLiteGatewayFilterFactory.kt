@@ -2,19 +2,20 @@ package com.hamza.geolite.webflux
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hamza.geolite.Commons
+import com.hamza.geolite.toDto
 import io.micrometer.tracing.Tracer
 import org.slf4j.LoggerFactory
 import org.springframework.cloud.gateway.filter.GatewayFilter
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory
 import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver
 
-class GeoIP2GatewayFilterFactory(
-    private val geoIP2Service: IGeoIP2Service,
+class GeoLiteGatewayFilterFactory(
+    private val geoLiteService: IGeoLiteService,
     private val objectMapper: ObjectMapper,
     private val tracer: Tracer,
     private val resolver: XForwardedRemoteAddressResolver,
-    private val mdcKey: String,
-) : AbstractGatewayFilterFactory<GeoIP2GatewayFilterFactory.Companion.Config>(Config::class.java) {
+    private val baggage: String,
+) : AbstractGatewayFilterFactory<GeoLiteGatewayFilterFactory.Companion.Config>(Config::class.java) {
     companion object {
         class Config
     }
@@ -29,14 +30,14 @@ class GeoIP2GatewayFilterFactory(
                         ?.address
                         ?.hostAddress
                     ?: "0.0.0.0"
-            geoIP2Service
-                .lookupCity(xForwardedFor)
+            geoLiteService
+                .city(xForwardedFor)
                 .flatMap {
-                    val json = Commons.writeJson(it, objectMapper)
-                    logger.warn(mdcKey)
+                    val json = Commons.writeJson(it.toDto(), objectMapper)
+                    logger.debug("{}: {}", baggage, it.toDto())
                     Commons.withDynamicBaggage(
                         tracer = tracer,
-                        key = mdcKey,
+                        key = baggage,
                         value = json,
                         publisher = chain.filter(exchange),
                     )

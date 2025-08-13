@@ -1,38 +1,40 @@
-# spring gateway geolite
+# Spring Cloud Gateway GeoLite
 
-spring cloud gateway filter to extract geoip2 data from x-forwarded-for and add them to mdc/tracing context
+SGC filter to automatically transform "X-Forwarded-For" header to GeoIP data and add it to MDC/tracing baggage
+using [local GeoLite dbs](https://github.com/P3TERX/GeoLite.mmdb)
 
-using [local geolite dbs](https://github.com/P3TERX/GeoLite.mmdb)
-
-autoconfigured with conditions on
+autoconfiguration require
 
 * org.springframework.cloud:spring-cloud-starter-gateway-server-webflux
 * io.micrometer:micrometer-tracing-bridge-otel
 
-why ? -> https://docs.spring.io/spring-boot/reference/actuator/tracing.html#actuator.micrometer-tracing.baggage
+micrometer is needed to [pass baggage to
+MDC](https://docs.spring.io/spring-boot/reference/actuator/tracing.html#actuator.micrometer-tracing.baggage)
 
-configure :
+### configure on SCG
 
 ```yaml
-geoip2:
+geolite:
   db:
-    asn: geoip2/GeoLite2-ASN.mmdb # whre
-    city: geoip2/GeoLite2-City.mmdb
-    country: geoip2/GeoLite2-Country.mmdb
-  loadOnStartUp: false
-  mdcKey: visitor_infos
+    asn: # spring ResourceLoader relative path to db file
+    city: # example: geolite/GeoLite2-City.mmdb
+    country: # ...
+  baggage: # MDC or baggage name
   maxTrustedIndex: 1
 management:
   tracing:
     baggage:
       correlation:
         fields:
-          - ${geoip2.mdcKey}
+          - ${geolite.baggage}
       remote-fields:
-        - ${geoip2.mdcKey}
+        - ${geolite.baggage}
 ```
 
-then appy filter on your routes
+true "X-Forwarded-For" is resolved
+using [maxTrustedIndex](https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/request-predicates-factories.html#modifying-the-way-remote-addresses-are-resolved)
+
+### then apply as any other filter on your routes
 
 ```yaml
 spring:
@@ -46,16 +48,34 @@ spring:
               predicates:
                 - Path=/stub/**
               filters:
-                - GeoIP2
+                - GeoLite
 ```
 
-build
+because of how free GeoLite databases are distributed, this filter require increased Xms/Xmx reservation to prevent
+OOM
+
+### archi
+
+* core: implementation(file readers, GeoLite service, filters)
+* scg-webflux-test: integration tests on a real webflux SCG edging wiremock
+
+### build
+
+reqs [jdk 24](https://sdkman.io)
+
+```shell
+sdk env install
+```
 
 ```yaml
-./gradlew clean ktlintFormat ktlintCheck build publishToMavenLocal
+./gradlew clean ktlintFormat ktlintCheck build
 ```
 
-in gateway pom
+```yaml
+./gradlew publishToMavenLocal
+```
+
+in your SCG pom/build
 
 ```kotlin
 repositories {
@@ -63,10 +83,13 @@ repositories {
     mavenLocal()
 }
 
-implementation("com.hamza.geolite:spring-gateway-geolite:0.0.1-SNAPSHOT")
+dependencies {
+    // ...
+    implementation("com.hamza.geolite:spring-gateway-geolite:0.0.1-SNAPSHOT")
+}
 ```
 
 ### TODO
 
-- webmvc
+- SGC webmvc
 - mvn publish

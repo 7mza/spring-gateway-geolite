@@ -6,9 +6,9 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
-class FileReader(
+class ImperativeImperativeFileReader(
     private val resourceLoader: ResourceLoader,
-) : IFileReader {
+) : IImperativeFileReader {
     override fun readFileAsBytes(
         path: String,
         bufferSize: Int,

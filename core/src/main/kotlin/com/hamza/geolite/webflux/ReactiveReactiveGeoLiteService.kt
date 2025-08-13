@@ -9,12 +9,12 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.net.InetAddress
 
-class GeoLiteService(
-    fileReader: IFileReader,
+class ReactiveReactiveGeoLiteService(
+    fileReader: IReactiveFileReader,
     cityDbPath: String,
     countryDbPath: String,
     asnDbPath: String,
-) : IGeoLiteService {
+) : IReactiveGeoLiteService {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     private val cityDbReaderMono: Mono<DatabaseReader> =
@@ -46,7 +46,7 @@ class GeoLiteService(
                 }.subscribeOn(Schedulers.boundedElastic())
                 .onErrorResume { ex ->
                     // Mono.empty on filters short-circuit the whole chain
-                    logger.error("city: {}", ex.message)
+                    logger.warn("city: {}", ex.message)
                     Mono.error(ex)
                 }
         }
@@ -58,7 +58,7 @@ class GeoLiteService(
                     reader.country(InetAddress.getByName(ip))
                 }.subscribeOn(Schedulers.boundedElastic())
                 .onErrorResume { ex ->
-                    logger.error("country: {}", ex.message)
+                    logger.warn("country: {}", ex.message)
                     Mono.error(ex)
                 }
         }
@@ -70,7 +70,7 @@ class GeoLiteService(
                     reader.asn(InetAddress.getByName(ip))
                 }.subscribeOn(Schedulers.boundedElastic())
                 .onErrorResume { ex ->
-                    logger.error("asn: {}", ex.message)
+                    logger.warn("asn: {}", ex.message)
                     Mono.error(ex)
                 }
         }

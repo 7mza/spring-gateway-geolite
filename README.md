@@ -1,7 +1,48 @@
 # Spring Cloud Gateway GeoLite
 
 SGC filter to automatically transform "X-Forwarded-For" header to GeoIP data and add it to MDC/tracing baggage
-using [local GeoLite dbs](https://github.com/P3TERX/GeoLite.mmdb)
+using [MaxMind local GeoLite dbs](https://github.com/P3TERX/GeoLite.mmdb)
+
+### data model
+
+```json
+{
+  "city": {
+    "name": "Minneapolis",
+    "isoCode": "MN"
+  },
+  "country": {
+    "name": "United States",
+    "isoCode": "US"
+  },
+  "asn": {
+    "autonomousSystemNumber": 217,
+    "autonomousSystemOrganization": "UMN-SYSTEM",
+    "ipAddress": "128.101.101.101",
+    "hostAddress": "128.101.0.0",
+    "prefixLength": 16
+  }
+}
+```
+
+this model will be accessible to log encoder and can be transformed by collector
+
+example with fluentd
+
+```text
+...
+<filter $tag.**>
+  @type parser
+  key_name ${geolite.baggage}
+  reserve_data true
+  remove_key_name_field true
+  emit_invalid_record_to_error false
+  <parse>
+    @type json
+  </parse>
+</filter>
+...
+```
 
 autoconfiguration require
 
@@ -36,6 +77,8 @@ using [maxTrustedIndex](https://docs.spring.io/spring-cloud-gateway/reference/sp
 
 ### then apply as any other filter on your routes
 
+#### webflux
+
 ```yaml
 spring:
   cloud:
@@ -48,7 +91,13 @@ spring:
               predicates:
                 - Path=/stub/**
               filters:
-                - GeoLite
+                - ReactiveGeoLite
+```
+
+#### webmvc
+
+```yml
+# TODO
 ```
 
 because of how free GeoLite databases are distributed, this filter require increased Xms/Xmx reservation to prevent
@@ -57,11 +106,18 @@ OOM
 ### archi
 
 * core: implementation(file readers, GeoLite service, filters)
-* scg-webflux-test: integration tests on a real webflux SCG edging wiremock
+* scg-*-test: integration tests on a real SCG / wiremock
+
+### reqs
+
+* spring boot 3.5.+
+* spring cloud 2015.+
 
 ### build
 
-reqs [jdk 24](https://sdkman.io)
+[sdkman](https://sdkman.io)
+
+* jdk 17 / kotlin 1.9.x for broader support
 
 ```shell
 sdk env install
@@ -92,4 +148,5 @@ dependencies {
 ### TODO
 
 - SGC webmvc
+- cache auto plug
 - mvn publish

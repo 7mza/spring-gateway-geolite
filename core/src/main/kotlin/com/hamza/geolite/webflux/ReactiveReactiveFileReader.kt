@@ -9,9 +9,9 @@ import reactor.core.scheduler.Schedulers
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
-class FileReader(
+class ReactiveReactiveFileReader(
     private val resourceLoader: ResourceLoader,
-) : IFileReader {
+) : IReactiveFileReader {
     // FIXME: OOM on large files
     override fun readFileAsBytes(
         path: String,

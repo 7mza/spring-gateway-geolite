@@ -8,14 +8,15 @@ import org.slf4j.LoggerFactory
 import org.springframework.cloud.gateway.filter.GatewayFilter
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory
 import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver
+import reactor.core.publisher.Mono
 
-class GeoLiteGatewayFilterFactory(
-    private val geoLiteService: IGeoLiteService,
+class ReactiveGeoLiteGatewayFilterFactory(
+    private val geoLiteService: IReactiveGeoLiteService,
     private val objectMapper: ObjectMapper,
     private val tracer: Tracer,
     private val resolver: XForwardedRemoteAddressResolver,
     private val baggage: String,
-) : AbstractGatewayFilterFactory<GeoLiteGatewayFilterFactory.Companion.Config>(Config::class.java) {
+) : AbstractGatewayFilterFactory<ReactiveGeoLiteGatewayFilterFactory.Companion.Config>(Config::class.java) {
     companion object {
         class Config
     }
@@ -30,17 +31,21 @@ class GeoLiteGatewayFilterFactory(
                         ?.address
                         ?.hostAddress
                     ?: "0.0.0.0"
-            geoLiteService
-                .city(xForwardedFor)
-                .flatMap {
-                    val json = Commons.writeJson(it.toDto(), objectMapper)
-                    logger.debug("{}: {}", baggage, it.toDto())
-                    Commons.withDynamicBaggage(
-                        tracer = tracer,
-                        key = baggage,
-                        value = json,
-                        publisher = chain.filter(exchange),
-                    )
-                }.onErrorResume { chain.filter(exchange) }
+            Mono.zip(
+                geoLiteService
+                    .city(xForwardedFor),
+                geoLiteService
+                    .asn(xForwardedFor),
+            ).flatMap {
+                val json = Commons.writeJson(it.t1.toDto(it.t2.toDto()), objectMapper)
+                logger.debug("x-forwarded-for: {}", xForwardedFor)
+                logger.debug("baggage {}: {}", baggage, json)
+                Commons.withDynamicBaggage(
+                    tracer = tracer,
+                    key = baggage,
+                    value = json,
+                    publisher = chain.filter(exchange),
+                )
+            }.onErrorResume { chain.filter(exchange) }
         }
 }

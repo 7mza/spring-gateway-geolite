@@ -7,11 +7,14 @@ import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.reset
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.hamza.geolite.AsnData
+import com.hamza.geolite.CityData
 import com.hamza.geolite.Commons
+import com.hamza.geolite.CountryData
 import com.hamza.geolite.GeoLiteData
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.mock
@@ -29,10 +32,32 @@ import org.springframework.web.server.ServerWebExchange
 import java.net.InetAddress
 import java.net.InetSocketAddress
 
+val geoLiteData =
+    GeoLiteData(
+        city =
+            CityData(
+                name = "Minneapolis",
+                isoCode = "MN",
+            ),
+        country =
+            CountryData(
+                name = "United States",
+                isoCode = "US",
+            ),
+        asn =
+            AsnData(
+                autonomousSystemNumber = 217,
+                autonomousSystemOrganization = "UMN-SYSTEM",
+                ipAddress = "128.101.101.101",
+                hostAddress = "128.101.0.0",
+                prefixLength = 16,
+            ),
+    )
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureObservability
-class GeoLiteGatewayFilterFactoryTest {
+class ReactiveGeoLiteGatewayFilterFactoryTest {
     @Autowired
     private lateinit var webTestClient: WebTestClient
 
@@ -42,14 +67,6 @@ class GeoLiteGatewayFilterFactoryTest {
     @MockitoBean("GeoLiteForwardedResolver")
     private lateinit var resolver: XForwardedRemoteAddressResolver
 
-    private var geoLiteData =
-        GeoLiteData(
-            city = "Minneapolis",
-            cityIsoCode = "MN",
-            country = "United States",
-            countryIsoCode = "US",
-        )
-
     @AfterEach
     fun afterEach() {
         reset()
@@ -57,10 +74,11 @@ class GeoLiteGatewayFilterFactoryTest {
 
     // https://docs.spring.io/spring-boot/reference/actuator/tracing.html#actuator.micrometer-tracing.baggage
     @Test
-    fun `GeoLite filter should populate tracing context with city response`() {
+    @DisplayName("GeoLite filter should propagate 'management.tracing.baggage.remote-fields' as headers")
+    fun `GeoLite filter propagate headers`() {
         val inetAddress = mock(InetAddress::class.java)
         whenever(inetAddress.hostAddress)
-            .thenReturn("128.101.101.10")
+            .thenReturn("128.101.101.101")
         whenever(resolver.resolve(any(ServerWebExchange::class.java)))
             .thenReturn(InetSocketAddress(inetAddress, 0))
 
@@ -90,11 +108,5 @@ class GeoLiteGatewayFilterFactoryTest {
                 .responseBody
 
         assertThat(response).isEqualTo("hello world")
-    }
-
-    @Disabled
-    @Test
-    fun mdc() {
-        // FIXME: access mdc from reactor and check for configured baggage existence and value
     }
 }

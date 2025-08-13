@@ -1,25 +1,52 @@
 package com.hamza.geolite
 
+import com.maxmind.geoip2.model.AsnResponse
 import com.maxmind.geoip2.model.CityResponse
 
-/*
-* FIXME: com.hamza.geolite.IGeoLiteService
-* should return the whole com.maxmind.geoip2.model.CityResponse
-* but need a complex jackson mixin
-* using this sub model for now
-*/
-
 data class GeoLiteData(
-    val city: String,
-    val cityIsoCode: String,
-    val country: String,
-    val countryIsoCode: String,
+    val city: CityData? = null,
+    val country: CountryData? = null,
+    val asn: AsnData? = null,
 )
 
-fun CityResponse.toDto(): GeoLiteData =
+data class CityData(
+    val name: String? = null,
+    val isoCode: String? = null,
+)
+
+data class CountryData(
+    val name: String? = null,
+    val isoCode: String? = null,
+)
+
+data class AsnData(
+    val autonomousSystemNumber: Long? = null,
+    val autonomousSystemOrganization: String? = null,
+    val ipAddress: String? = null,
+    val hostAddress: String? = null,
+    val prefixLength: Int? = null,
+)
+
+fun CityResponse.toDto(asn: AsnData? = null): GeoLiteData =
     GeoLiteData(
-        cityIsoCode = this.mostSpecificSubdivision.isoCode,
-        city = this.city.name,
-        countryIsoCode = this.country.isoCode,
-        country = this.country.name,
+        city =
+            CityData(
+                name = this.city.name,
+                isoCode = this.mostSpecificSubdivision.isoCode,
+            ),
+        country =
+            CountryData(
+                name = this.country.name,
+                isoCode = this.country.isoCode,
+            ),
+        asn = asn,
+    )
+
+fun AsnResponse.toDto(): AsnData =
+    AsnData(
+        autonomousSystemOrganization = this.autonomousSystemOrganization,
+        autonomousSystemNumber = this.autonomousSystemNumber,
+        ipAddress = this.ipAddress,
+        hostAddress = this.network.networkAddress.hostAddress,
+        prefixLength = this.network.prefixLength,
     )

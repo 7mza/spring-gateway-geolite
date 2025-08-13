@@ -30,7 +30,7 @@ spring:
               predicates:
                 - Path=/stub/**
               filters:
-                - GeoLite
+                - ReactiveGeoLite
   config:
     activate:
       on-profile: default

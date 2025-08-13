@@ -21,6 +21,6 @@ class GeoliteSharedConfiguration {
     @Order(Ordered.LOWEST_PRECEDENCE)
     @Bean(name = ["GeoLiteForwardedResolver"], defaultCandidate = false)
     fun getXForwardedRemoteAddressResolver(
-        @Value($$"${geolite.maxTrustedIndex}") maxTrustedIndex: Int,
+        @Value("\${geolite.maxTrustedIndex}") maxTrustedIndex: Int,
     ): XForwardedRemoteAddressResolver = XForwardedRemoteAddressResolver.maxTrustedIndex(maxTrustedIndex)
 }

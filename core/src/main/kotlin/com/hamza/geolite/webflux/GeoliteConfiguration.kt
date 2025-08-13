@@ -20,16 +20,16 @@ import org.springframework.core.io.ResourceLoader
 )
 class GeoliteConfiguration {
     @Bean("ReactiveFileReader")
-    fun fileReader(resourceLoader: ResourceLoader): IFileReader = FileReader(resourceLoader)
+    fun fileReader(resourceLoader: ResourceLoader): IReactiveFileReader = ReactiveReactiveFileReader(resourceLoader)
 
     @Bean("ReactiveGeoLiteService")
     fun geoLiteService(
-        @Qualifier("ReactiveFileReader") fileReader: IFileReader,
-        @Value($$"${geolite.db.city}") cityDbPath: String,
-        @Value($$"${geolite.db.country}") countryDbPath: String,
-        @Value($$"${geolite.db.asn}") asnDbPath: String,
-    ): IGeoLiteService =
-        GeoLiteService(
+        @Qualifier("ReactiveFileReader") fileReader: IReactiveFileReader,
+        @Value("\${geolite.db.city}") cityDbPath: String,
+        @Value("\${geolite.db.country}") countryDbPath: String,
+        @Value("\${geolite.db.asn}") asnDbPath: String,
+    ): IReactiveGeoLiteService =
+        ReactiveReactiveGeoLiteService(
             fileReader = fileReader,
             cityDbPath = cityDbPath,
             countryDbPath = countryDbPath,
@@ -38,13 +38,13 @@ class GeoliteConfiguration {
 
     @Bean
     fun geoLiteFilter(
-        @Qualifier("ReactiveGeoLiteService") geoLiteService: IGeoLiteService,
+        @Qualifier("ReactiveGeoLiteService") geoLiteService: IReactiveGeoLiteService,
         @Qualifier("GeoLiteObjectMapper") objectMapper: ObjectMapper,
         tracer: Tracer,
         @Qualifier("GeoLiteForwardedResolver") resolver: XForwardedRemoteAddressResolver,
-        @Value($$"${geolite.baggage}") baggage: String,
-    ): AbstractGatewayFilterFactory<GeoLiteGatewayFilterFactory.Companion.Config> =
-        GeoLiteGatewayFilterFactory(
+        @Value("\${geolite.baggage}") baggage: String,
+    ): AbstractGatewayFilterFactory<ReactiveGeoLiteGatewayFilterFactory.Companion.Config> =
+        ReactiveGeoLiteGatewayFilterFactory(
             geoLiteService = geoLiteService,
             objectMapper = objectMapper,
             tracer = tracer,

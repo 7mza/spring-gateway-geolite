@@ -1,0 +1,45 @@
+geoip2:
+  db:
+    asn: geoip2/GeoLite2-ASN.mmdb
+    city: geoip2/GeoLite2-City.mmdb
+    country: geoip2/GeoLite2-Country.mmdb
+  loadOnStartUp: true
+  mdcKey: visitor_info
+  maxTrustedIndex: 1
+management:
+  tracing:
+    baggage: # https://docs.spring.io/spring-boot/reference/actuator/tracing.html
+      correlation:
+        fields:
+          - ${geoip2.mdcKey}
+      remote-fields:
+        - ${geoip2.mdcKey}
+logging:
+  level:
+    com.hamza: DEBUG
+    root: ERROR
+spring:
+  application:
+    name: scg-webflux-test
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: stub
+              uri: http://localhost:${wiremock.server.port}
+              predicates:
+                - Path=/stub/**
+              filters:
+                - GeoIP2
+  config:
+    activate:
+      on-profile: default
+  main:
+    banner-mode: off
+  output:
+    ansi:
+      enabled: ALWAYS
+wiremock:
+  server:
+    port: 0

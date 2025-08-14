@@ -3,7 +3,7 @@ plugins {
     id("org.springframework.boot")
 }
 
-group = "com.hamza.geolite.tests"
+group = "io.github.7mza.geolite.tests"
 version = "0.0.1-SNAPSHOT"
 
 val blockhoundVersion = "1.0.13.RELEASE"

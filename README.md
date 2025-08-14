@@ -1,7 +1,7 @@
-# Spring Cloud Gateway GeoLite
+# Spring Cloud Gateway GeoLite2
 
-SGC filter to automatically transform "X-Forwarded-For" header to GeoIP data and add it to MDC/tracing baggage
-using [MaxMind local GeoLite dbs](https://github.com/P3TERX/GeoLite.mmdb)
+SGC filter to automatically transform "X-Forwarded-For" header to GeoIP2 data and add it to MDC/tracing baggage
+using [MaxMind local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
 
 ### data model
 
@@ -141,7 +141,7 @@ repositories {
 
 dependencies {
     // ...
-    implementation("com.hamza.geolite:spring-gateway-geolite:0.0.1-SNAPSHOT")
+    implementation("io.github.7mza:spring-gateway-geolite:0.0.1-SNAPSHOT")
 }
 ```
 

@@ -1,2 +1,2 @@
-com.hamza.geolite.GeoliteSharedConfiguration
-com.hamza.geolite.webflux.GeoliteConfiguration
+io.github.hamza.geolite.GeoliteSharedConfiguration
+io.github.hamza.geolite.webflux.GeoliteConfiguration

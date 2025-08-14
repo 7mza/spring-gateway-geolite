@@ -1,0 +1,74 @@
+package io.github.hamza.geolite.webflux
+
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
+import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.stubFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
+import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver
+import org.springframework.context.annotation.Import
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.web.server.ServerWebExchange
+import java.net.InetAddress
+import java.net.InetSocketAddress
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureWireMock(port = 0)
+@AutoConfigureObservability
+@Import(FilterTapTestConfiguration::class)
+class ReactiveGeoLiteGatewayFilterFactoryBaggageTest {
+    @Autowired
+    private lateinit var webTestClient: WebTestClient
+
+    @MockitoBean("GeoLiteForwardedResolver")
+    private lateinit var resolver: XForwardedRemoteAddressResolver
+
+    @Test
+    @DisplayName("GeoLite filter should propagate 'management.tracing.baggage.correlation.fields' as baggage")
+    fun `GeoLite filter propagate baggage`() {
+        val inetAddress = mock(InetAddress::class.java)
+        whenever(inetAddress.hostAddress)
+            .thenReturn("128.101.101.101")
+        whenever(resolver.resolve(any(ServerWebExchange::class.java)))
+            .thenReturn(InetSocketAddress(inetAddress, 0))
+
+        stubFor(
+            get(urlEqualTo("/stub"))
+                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_HTML_VALUE))
+                .willReturn(
+                    aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
+                        .withBody("hello world"),
+                ),
+        )
+
+        val response =
+            webTestClient
+                .get()
+                .uri("/stub")
+                .accept(MediaType.TEXT_HTML)
+                .exchange()
+                .expectStatus()
+                .isOk
+                .expectHeader()
+                .contentTypeCompatibleWith(MediaType.TEXT_HTML)
+                .expectBody(String::class.java)
+                .returnResult()
+                .responseBody
+
+        assertThat(response).isEqualTo("hello world")
+    }
+}

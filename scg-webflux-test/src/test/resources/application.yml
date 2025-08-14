@@ -15,7 +15,7 @@ management:
         - ${geolite.baggage}
 logging:
   level:
-    io.github.7mza: DEBUG
+    io.github.hamza.geolite: DEBUG
     root: ERROR
 spring:
   application:

@@ -88,6 +88,9 @@ management:
           - ${geolite.baggage}
       remote-fields:
         - ${geolite.baggage}
+logging:
+  level:
+    io.github.7mza: # LEVEL
 ```
 
 true non-proxy "X-Forwarded-For" is resolved

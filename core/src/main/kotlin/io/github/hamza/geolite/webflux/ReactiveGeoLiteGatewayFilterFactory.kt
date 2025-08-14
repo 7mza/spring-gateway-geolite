@@ -40,6 +40,7 @@ class ReactiveGeoLiteGatewayFilterFactory(
                 val json = Commons.writeJson(it.t1.toDto(it.t2.toDto()), objectMapper)
                 logger.debug("x-forwarded-for: {}", xForwardedFor)
                 logger.debug("baggage {}: {}", baggage, json)
+                logger.warn("{}", baggage) // force mdc, FIXME: configurable level
                 Commons.withDynamicBaggage(
                     tracer = tracer,
                     key = baggage,

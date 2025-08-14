@@ -1,9 +1,9 @@
 # Spring Cloud Gateway GeoLite2
 
 SGC filter to automatically transform "X-Forwarded-For" header to GeoIP2 data and add it to MDC/tracing baggage
-using [MaxMind local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
+using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
 
-### data model
+data model
 
 ```json
 {
@@ -25,7 +25,7 @@ using [MaxMind local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
 }
 ```
 
-this model will be accessible to log encoder and can be transformed by collector
+this model will be accessible to log encoder in MDC & can be transformed by log collectors
 
 example with fluentd
 
@@ -44,13 +44,31 @@ example with fluentd
 ...
 ```
 
-autoconfiguration require
+## usage
 
-* org.springframework.cloud:spring-cloud-starter-gateway-server-webflux
+```kotlin
+implementation("io.github.7mza:spring-gateway-geolite:$latest")
+```
+
+```xml
+
+<dependency>
+    <groupId>io.github.7mza</groupId>
+    <artifactId>spring-gateway-geolite</artifactId>
+    <version>$latest</version>
+</dependency>
+```
+
+autoconfiguration conditional on
+
+* spring-cloud-starter-gateway-server-webflux
+* actuator
 * io.micrometer:micrometer-tracing-bridge-otel
 
 micrometer is needed to [pass baggage to
 MDC](https://docs.spring.io/spring-boot/reference/actuator/tracing.html#actuator.micrometer-tracing.baggage)
+
+download latest GeoLite dbs from [P3TERX/GeoLite.mmdb](https://github.com/P3TERX/GeoLite.mmdb)
 
 ### configure on SCG
 
@@ -60,7 +78,7 @@ geolite:
     asn: # spring ResourceLoader relative path to db file
     city: # example: geolite/GeoLite2-City.mmdb
     country: # ...
-  baggage: # MDC or baggage name
+  baggage: # MDC field / baggage name
   maxTrustedIndex: 1
 management:
   tracing:
@@ -72,7 +90,7 @@ management:
         - ${geolite.baggage}
 ```
 
-true "X-Forwarded-For" is resolved
+true non-proxy "X-Forwarded-For" is resolved
 using [maxTrustedIndex](https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/request-predicates-factories.html#modifying-the-way-remote-addresses-are-resolved)
 
 ### then apply as any other filter on your routes
@@ -100,24 +118,24 @@ spring:
 # TODO
 ```
 
-because of how free GeoLite databases are distributed, this filter require increased Xms/Xmx reservation to prevent
-OOM
+**because of how free GeoLite databases are distributed, this filter require increased Xms/Xmx reservation to prevent
+OOM**
+
+### support
+
+* spring boot 3.5.* / spring cloud 2025.*
+* spring boot 3.4.* / spring cloud 2024.*
 
 ### archi
 
-* core: implementation(file readers, GeoLite service, filters)
+* core: implementation
 * scg-*-test: integration tests on a real SCG / wiremock
 
-### reqs
-
-* spring boot 3.5.+
-* spring cloud 2015.+
-
-### build
+### local build
 
 [sdkman](https://sdkman.io)
 
-* jdk 17 / kotlin 1.9.x for broader support
+* jdk 17 for broader support
 
 ```shell
 sdk env install
@@ -141,7 +159,7 @@ repositories {
 
 dependencies {
     // ...
-    implementation("io.github.7mza:spring-gateway-geolite:0.0.1-SNAPSHOT")
+    implementation("io.github.7mza:spring-gateway-geolite:${local_build_version}")
 }
 ```
 
@@ -149,4 +167,3 @@ dependencies {
 
 - SGC webmvc
 - cache auto plug
-- mvn publish

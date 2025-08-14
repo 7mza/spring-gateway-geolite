@@ -3,7 +3,7 @@
 SGC filter to automatically transform "X-Forwarded-For" header to GeoIP2 data and add it to MDC/tracing baggage
 using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
 
-data model
+[data model](./core/src/main/kotlin/io/github/hamza/geolite/Models.kt)
 
 ```json
 {

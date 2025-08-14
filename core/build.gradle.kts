@@ -9,8 +9,9 @@ plugins {
 
 val artifact = "spring-gateway-geolite"
 group = "io.github.7mza"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.1-RELEASE"
 
+val blockhoundVersion = "1.0.13.RELEASE"
 val geoip2Version = "4.3.1"
 val springCloudVersion = "2025.0.0"
 
@@ -25,6 +26,8 @@ dependencies {
     compileOnly("org.springframework.boot:spring-boot-starter-actuator")
     compileOnly("org.springframework.cloud:spring-cloud-starter-gateway-server-webflux")
     compileOnly("org.springframework.cloud:spring-cloud-starter-gateway-server-webmvc")
+
+    testImplementation("io.projectreactor.tools:blockhound-junit-platform:$blockhoundVersion")
 }
 
 dependencyManagement {

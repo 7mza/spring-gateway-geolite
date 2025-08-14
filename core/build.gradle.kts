@@ -4,7 +4,7 @@ plugins {
     kotlin("plugin.spring")
     id("org.springframework.boot")
     id("maven-publish")
-    id("org.jreleaser") version "1.19.0"
+    id("org.jreleaser")
 }
 
 val artifact = "spring-gateway-geolite"
@@ -76,17 +76,18 @@ publishing {
                     url = "https://github.com/7mza/spring-gateway-geolite"
                 }
             }
-            repositories {
-                maven {
-                    url = uri(layout.buildDirectory.dir("staging-deploy"))
-                }
-            }
         }
+    }
 
-        tasks.javadoc {
-            if (JavaVersion.current().isJava9Compatible) {
-                (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
-            }
+    repositories {
+        maven {
+            url = uri(layout.buildDirectory.dir("staging-deploy"))
+        }
+    }
+
+    tasks.javadoc {
+        if (JavaVersion.current().isJava9Compatible) {
+            (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
         }
     }
 }
@@ -97,6 +98,7 @@ jreleaser {
     signing {
         active = Active.ALWAYS
         armored = true
+        verify = true
     }
     deploy {
         maven {

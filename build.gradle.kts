@@ -11,6 +11,7 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "12.3.0"
     id("org.owasp.dependencycheck") version "12.1.3"
     jacoco
+    id("org.jreleaser") version "1.19.0" apply false
 }
 
 allprojects {

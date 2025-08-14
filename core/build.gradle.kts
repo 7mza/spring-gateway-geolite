@@ -1,3 +1,5 @@
+import org.jreleaser.model.Active
+
 plugins {
     kotlin("plugin.spring")
     id("org.springframework.boot")
@@ -84,6 +86,37 @@ publishing {
         tasks.javadoc {
             if (JavaVersion.current().isJava9Compatible) {
                 (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
+            }
+        }
+    }
+}
+
+jreleaser {
+    gitRootSearch = true
+    strict = true
+    signing {
+        active = Active.ALWAYS
+        armored = true
+    }
+    deploy {
+        maven {
+            mavenCentral {
+                register("release-deploy") {
+                    active = Active.RELEASE
+                    url = "https://central.sonatype.com/api/v1/publisher"
+                    stagingRepository("build/staging-deploy")
+                }
+            }
+            nexus2 {
+                register("snapshot-deploy") {
+                    active = Active.SNAPSHOT
+                    snapshotUrl = "https://central.sonatype.com/repository/maven-snapshots/"
+                    applyMavenCentralRules = true
+                    snapshotSupported = true
+                    closeRepository = true
+                    releaseRepository = true
+                    stagingRepository("build/staging-deploy")
+                }
             }
         }
     }

@@ -33,7 +33,7 @@ dependencyManagement {
     }
 }
 
-tasks.jar {
+tasks.withType<Jar>().configureEach {
     archiveBaseName.set(artifact)
 }
 
@@ -93,6 +93,14 @@ publishing {
 }
 
 jreleaser {
+    project {
+        name = artifact
+        languages {
+            java {
+                artifactId = artifact
+            }
+        }
+    }
     gitRootSearch = true
     strict = true
     signing {
@@ -106,6 +114,7 @@ jreleaser {
                 register("release-deploy") {
                     active = Active.RELEASE
                     url = "https://central.sonatype.com/api/v1/publisher"
+                    applyMavenCentralRules = true
                     stagingRepository("build/staging-deploy")
                 }
             }

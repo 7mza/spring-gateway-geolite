@@ -1,8 +1,11 @@
 package io.github.hamza.geolite
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.micrometer.tracing.Tracer
+import org.slf4j.Logger
 import reactor.core.publisher.Mono
 
 class Commons {
@@ -28,5 +31,41 @@ class Commons {
                 { publisher },
                 { it.close() },
             )
+
+        fun logAtLevel(
+            logger: Logger,
+            message: String,
+            vararg args: Any?,
+        ) {
+            when {
+                logger.isTraceEnabled -> logger.trace(message, *args)
+                logger.isDebugEnabled -> logger.debug(message, *args)
+                logger.isInfoEnabled -> logger.info(message, *args)
+                logger.isWarnEnabled -> logger.warn(message, *args)
+                logger.isErrorEnabled -> logger.error(message, *args)
+                else -> logger.debug(message, *args)
+            }
+        }
+
+        fun excludedFields(
+            data: GeoLiteData,
+            properties: GeoliteSharedConfiguration.GeoliteProperties,
+            mapper: ObjectMapper,
+        ): JsonNode {
+            val node = mapper.valueToTree<ObjectNode>(data)
+            properties.exclude.forEach { path ->
+                val parts = path.split(".")
+                if (parts.size == 1) {
+                    node.remove(parts[0])
+                } else if (parts.size == 2 && parts[1] == "*") {
+                    node.remove(parts[0])
+                } else if (parts.size == 2) {
+                    val (parentKey, childKey) = parts
+                    val parentNode = node[parentKey] as? ObjectNode
+                    parentNode?.remove(childKey)
+                }
+            }
+            return node
+        }
     }
 }

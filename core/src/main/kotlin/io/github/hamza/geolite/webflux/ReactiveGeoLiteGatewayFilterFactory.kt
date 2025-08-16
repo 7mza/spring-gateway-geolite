@@ -2,6 +2,8 @@ package io.github.hamza.geolite.webflux
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.hamza.geolite.Commons
+import io.github.hamza.geolite.Commons.Companion.logAtLevel
+import io.github.hamza.geolite.GeoliteSharedConfiguration.GeoliteProperties
 import io.github.hamza.geolite.toDto
 import io.micrometer.tracing.Tracer
 import org.slf4j.LoggerFactory
@@ -15,7 +17,7 @@ class ReactiveGeoLiteGatewayFilterFactory(
     private val objectMapper: ObjectMapper,
     private val tracer: Tracer,
     private val resolver: XForwardedRemoteAddressResolver,
-    private val baggage: String,
+    private val properties: GeoliteProperties,
 ) : AbstractGatewayFilterFactory<ReactiveGeoLiteGatewayFilterFactory.Companion.Config>(Config::class.java) {
     companion object {
         class Config
@@ -37,13 +39,15 @@ class ReactiveGeoLiteGatewayFilterFactory(
                 geoLiteService
                     .asn(xForwardedFor),
             ).flatMap {
-                val json = Commons.writeJson(it.t1.toDto(it.t2.toDto()), objectMapper)
+                val geoLiteData = it.t1.toDto(it.t2.toDto())
+                val filteredJson = Commons.excludedFields(geoLiteData, properties, objectMapper)
+                val json = Commons.writeJson(filteredJson, objectMapper)
                 logger.debug("x-forwarded-for: {}", xForwardedFor)
-                logger.debug("baggage {}: {}", baggage, json)
-                logger.warn("{}", baggage) // force mdc, FIXME: configurable level
+                logger.debug("baggage {}: {}", properties.baggage, json)
+                logAtLevel(logger, "{}", properties.baggage) // force write to mdc
                 Commons.withDynamicBaggage(
                     tracer = tracer,
-                    key = baggage,
+                    key = properties.baggage,
                     value = json,
                     publisher = chain.filter(exchange),
                 )

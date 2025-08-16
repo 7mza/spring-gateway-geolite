@@ -4,39 +4,53 @@ import com.maxmind.geoip2.DatabaseReader
 import com.maxmind.geoip2.model.AsnResponse
 import com.maxmind.geoip2.model.CityResponse
 import com.maxmind.geoip2.model.CountryResponse
+import io.github.hamza.geolite.GeoliteSharedConfiguration.GeoliteProperties
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.net.InetAddress
 
-class ReactiveReactiveGeoLiteService(
+class ReactiveGeoLiteService(
     fileReader: IReactiveFileReader,
-    cityDbPath: String,
-    countryDbPath: String,
-    asnDbPath: String,
+    properties: GeoliteProperties,
 ) : IReactiveGeoLiteService {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    /* FIXME:
+     * defensive db loading on path existence
+     * return default dto instead of error for filter zip
+     * return default dto immediately if no DB
+     */
+
     private val cityDbReaderMono: Mono<DatabaseReader> =
         fileReader
-            .readFileAsInputStream("classpath:$cityDbPath")
+            .readFileAsInputStream("classpath:${properties.db.city}")
             .map { DatabaseReader.Builder(it).build() }
             .subscribeOn(Schedulers.boundedElastic())
-            .cache()
+            .onErrorResume { ex ->
+                logger.error("cityDbReaderMono: {}", ex.message)
+                Mono.error(ex)
+            }
 
     private val countryDbReaderMono: Mono<DatabaseReader> =
         fileReader
-            .readFileAsInputStream("classpath:$countryDbPath")
+            .readFileAsInputStream("classpath:${properties.db.country}")
             .map { DatabaseReader.Builder(it).build() }
             .subscribeOn(Schedulers.boundedElastic())
-            .cache()
+            .onErrorResume { ex ->
+                logger.error("countryDbReaderMono: {}", ex.message)
+                Mono.error(ex)
+            }
 
     private val asnDbReaderMono: Mono<DatabaseReader> =
         fileReader
-            .readFileAsInputStream("classpath:$asnDbPath")
+            .readFileAsInputStream("classpath:${properties.db.asn}")
             .map { DatabaseReader.Builder(it).build() }
             .subscribeOn(Schedulers.boundedElastic())
-            .cache()
+            .onErrorResume { ex ->
+                logger.error("asnDbReaderMono: {}", ex.message)
+                Mono.error(ex)
+            }
 
     override fun city(ip: String): Mono<CityResponse> =
         cityDbReaderMono.flatMap { reader ->

@@ -74,11 +74,14 @@ download latest GeoLite dbs from [P3TERX/GeoLite.mmdb](https://github.com/P3TERX
 
 ```yaml
 geolite:
+  baggage: # MDC field / baggage name
   db:
     asn: # spring ResourceLoader relative path to db file
     city: # example: geolite/GeoLite2-City.mmdb
     country: # ...
-  baggage: # MDC field / baggage name
+  exclude: # fields to exclude
+  # - asn.ipAddress
+  # or - asn.*
   maxTrustedIndex: 1
 management:
   tracing:
@@ -126,8 +129,7 @@ OOM**
 
 ### support
 
-* spring boot 3.5.* / spring cloud 2025.*
-* spring boot 3.4.* / spring cloud 2024.*
+* spring boot 3.4+.* / spring cloud 2025.*
 
 ### archi
 

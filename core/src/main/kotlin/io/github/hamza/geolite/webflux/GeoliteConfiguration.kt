@@ -1,9 +1,9 @@
 package io.github.hamza.geolite.webflux
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.github.hamza.geolite.GeoliteSharedConfiguration.GeoliteProperties
 import io.micrometer.tracing.Tracer
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory
@@ -20,20 +20,16 @@ import org.springframework.core.io.ResourceLoader
 )
 class GeoliteConfiguration {
     @Bean("ReactiveFileReader")
-    fun fileReader(resourceLoader: ResourceLoader): IReactiveFileReader = ReactiveReactiveFileReader(resourceLoader)
+    fun fileReader(resourceLoader: ResourceLoader): IReactiveFileReader = ReactiveFileReader(resourceLoader)
 
     @Bean("ReactiveGeoLiteService")
     fun geoLiteService(
         @Qualifier("ReactiveFileReader") fileReader: IReactiveFileReader,
-        @Value("\${geolite.db.city}") cityDbPath: String,
-        @Value("\${geolite.db.country}") countryDbPath: String,
-        @Value("\${geolite.db.asn}") asnDbPath: String,
+        properties: GeoliteProperties,
     ): IReactiveGeoLiteService =
-        ReactiveReactiveGeoLiteService(
+        ReactiveGeoLiteService(
             fileReader = fileReader,
-            cityDbPath = cityDbPath,
-            countryDbPath = countryDbPath,
-            asnDbPath = asnDbPath,
+            properties = properties,
         )
 
     @Bean
@@ -42,13 +38,13 @@ class GeoliteConfiguration {
         @Qualifier("GeoLiteObjectMapper") objectMapper: ObjectMapper,
         tracer: Tracer,
         @Qualifier("GeoLiteForwardedResolver") resolver: XForwardedRemoteAddressResolver,
-        @Value("\${geolite.baggage}") baggage: String,
+        properties: GeoliteProperties,
     ): AbstractGatewayFilterFactory<ReactiveGeoLiteGatewayFilterFactory.Companion.Config> =
         ReactiveGeoLiteGatewayFilterFactory(
             geoLiteService = geoLiteService,
             objectMapper = objectMapper,
             tracer = tracer,
             resolver = resolver,
-            baggage = baggage,
+            properties = properties,
         )
 }

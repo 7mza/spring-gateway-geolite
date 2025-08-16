@@ -1,10 +1,15 @@
 geolite:
+  baggage: visitor_info
   db:
     asn: geolite/GeoLite2-ASN.mmdb
     city: geolite/GeoLite2-City.mmdb
     country: geolite/GeoLite2-Country.mmdb
-  baggage: visitor_info
+  exclude: [ ]
   maxTrustedIndex: 1
+logging:
+  level:
+    io.github.hamza.geolite: DEBUG
+    root: ERROR
 management:
   tracing:
     baggage:
@@ -13,10 +18,6 @@ management:
           - ${geolite.baggage}
       remote-fields:
         - ${geolite.baggage}
-logging:
-  level:
-    io.github.hamza.geolite: DEBUG
-    root: ERROR
 spring:
   application:
     name: scg-webflux-test

@@ -9,7 +9,7 @@ import reactor.core.scheduler.Schedulers
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
-class ReactiveReactiveFileReader(
+class ReactiveFileReader(
     private val resourceLoader: ResourceLoader,
 ) : IReactiveFileReader {
     // FIXME: OOM on large files

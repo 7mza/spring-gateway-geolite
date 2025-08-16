@@ -3,6 +3,7 @@ package io.github.hamza.geolite.webflux
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.hamza.geolite.Commons
 import io.github.hamza.geolite.GeoLiteData
+import io.github.hamza.geolite.GeoliteSharedConfiguration
 import io.micrometer.tracing.BaggageManager
 import org.assertj.core.api.Assertions.assertThat
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,7 +21,7 @@ class FilterTapTestConfiguration
         private val geoLite: AbstractGatewayFilterFactory<ReactiveGeoLiteGatewayFilterFactory.Companion.Config>,
         private val baggageManager: BaggageManager,
         private val objectMapper: ObjectMapper,
-        @param:Value("\${geolite.baggage}") private val baggage: String,
+        private val properties: GeoliteSharedConfiguration.GeoliteProperties,
         @param:Value("\${wiremock.server.port}") private val port: Int,
     ) {
         @Bean
@@ -31,7 +32,7 @@ class FilterTapTestConfiguration
                         .filters { f ->
                             f.filter(geoLite.apply(ReactiveGeoLiteGatewayFilterFactory.Companion.Config()))
                             f.filter { exchange, chain ->
-                                val baggage = baggageManager.getBaggage(baggage)?.get()
+                                val baggage = baggageManager.getBaggage(properties.baggage)?.get()
                                 assertThat(baggage).isNotNull
                                 assertThat(Commons.parseJson<GeoLiteData>(baggage!!, objectMapper)).isEqualTo(geoLiteData)
                                 chain.filter(exchange)

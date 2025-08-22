@@ -32,6 +32,15 @@ spring:
                 - Path=/stub/**
               filters:
                 - ReactiveGeoLite
+            - id: stub2
+              uri: http://localhost:${wiremock.server.port}
+              predicates:
+                - Path=/stub2/**
+              filters:
+                - name: ReactiveGeoLite
+                  args:
+                    additionalHeaders:
+                      - user-agent
   config:
     activate:
       on-profile: default

@@ -38,5 +38,31 @@ class FilterTapTestConfiguration
                                 chain.filter(exchange)
                             }
                         }.uri("http://localhost:$port")
+                }.route("stub2") {
+                    it.path("/stub2")
+                        .filters { f ->
+                            f.filter(
+                                geoLite.apply(
+                                    ReactiveGeoLiteGatewayFilterFactory.Companion.Config(additionalHeaders = listOf("user-agent")),
+                                ),
+                            )
+                            f.filter { exchange, chain ->
+                                val baggage = baggageManager.getBaggage(properties.baggage)?.get()
+                                assertThat(baggage).isNotNull
+                                assertThat(Commons.parseJson<GeoLiteData>(baggage!!, objectMapper))
+                                    .isEqualTo(
+                                        geoLiteData.copy(
+                                            additionalHeaders =
+                                                mapOf(
+                                                    Pair(
+                                                        "user-agent",
+                                                        listOf("ReactorNetty/1.2.9"),
+                                                    ),
+                                                ),
+                                        ),
+                                    )
+                                chain.filter(exchange)
+                            }
+                        }.uri("http://localhost:$port")
                 }.build()
     }

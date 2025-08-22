@@ -109,4 +109,56 @@ class ReactiveGeoLiteGatewayFilterFactoryTest {
 
         assertThat(response).isEqualTo("hello world")
     }
+
+    @Test
+    fun `GeoLite filter should propagate additional headers if configured`() {
+        val inetAddress = mock(InetAddress::class.java)
+        whenever(inetAddress.hostAddress)
+            .thenReturn("128.101.101.101")
+        whenever(resolver.resolve(any(ServerWebExchange::class.java)))
+            .thenReturn(InetSocketAddress(inetAddress, 0))
+
+        stubFor(
+            get(urlEqualTo("/stub2"))
+                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_HTML_VALUE))
+                .withHeader(
+                    "visitor_info",
+                    equalTo(
+                        Commons.writeJson(
+                            geoLiteData.copy(
+                                additionalHeaders =
+                                    mapOf(
+                                        Pair(
+                                            "user-agent",
+                                            listOf("ReactorNetty/1.2.9"),
+                                        ),
+                                    ),
+                            ),
+                            objectMapper,
+                        ),
+                    ),
+                )
+                .willReturn(
+                    aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
+                        .withBody("hello world"),
+                ),
+        )
+
+        val response =
+            webTestClient
+                .get()
+                .uri("/stub2")
+                .accept(MediaType.TEXT_HTML)
+                .exchange()
+                .expectStatus()
+                .isOk
+                .expectHeader()
+                .contentTypeCompatibleWith(MediaType.TEXT_HTML)
+                .expectBody(String::class.java)
+                .returnResult()
+                .responseBody
+
+        assertThat(response).isEqualTo("hello world")
+    }
 }

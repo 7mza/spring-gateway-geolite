@@ -9,6 +9,7 @@ data class GeoLiteData(
     val city: CityData? = null,
     val country: CountryData? = null,
     val asn: AsnData? = null,
+    val additionalHeaders: Map<String, List<String>>? = null,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -32,7 +33,10 @@ data class AsnData(
     val prefixLength: Int? = null,
 )
 
-fun CityResponse.toDto(asn: AsnData? = null): GeoLiteData =
+fun CityResponse.toDto(
+    asn: AsnData? = null,
+    additionalHeaders: Map<String, List<String>>? = null,
+): GeoLiteData =
     GeoLiteData(
         city =
             CityData(
@@ -45,6 +49,7 @@ fun CityResponse.toDto(asn: AsnData? = null): GeoLiteData =
                 isoCode = this.country.isoCode,
             ),
         asn = asn,
+        additionalHeaders = additionalHeaders,
     )
 
 fun AsnResponse.toDto(): AsnData =

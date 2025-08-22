@@ -5,7 +5,7 @@ import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25" apply false
-    id("org.springframework.boot") version "3.5.4" apply false
+    id("org.springframework.boot") version "3.5.5" apply false
     id("io.spring.dependency-management") version "1.1.7"
     id("com.github.ben-manes.versions") version "0.51.0"
     id("org.jlleitschuh.gradle.ktlint") version "12.3.0"

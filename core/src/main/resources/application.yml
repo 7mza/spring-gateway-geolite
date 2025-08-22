@@ -18,5 +18,5 @@ management:
       correlation:
         fields:
           - ${geolite.baggage}
-      remote-fields:
-        - ${geolite.baggage}
+#      remote-fields:
+#        - ${geolite.baggage}

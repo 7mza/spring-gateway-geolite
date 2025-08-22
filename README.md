@@ -62,8 +62,8 @@ implementation("io.github.7mza:spring-gateway-geolite:$latest")
 autoconfiguration conditional on
 
 * spring-cloud-starter-gateway-server-webflux
-* actuator
 * io.micrometer:micrometer-tracing-bridge-otel
+* actuator
 
 micrometer is needed to [pass baggage to
 MDC](https://docs.spring.io/spring-boot/reference/actuator/tracing.html#actuator.micrometer-tracing.baggage)
@@ -89,8 +89,8 @@ management:
       correlation:
         fields:
           - ${geolite.baggage}
-      remote-fields:
-        - ${geolite.baggage}
+#      remote-fields:
+#        - ${geolite.baggage}
 logging:
   level:
     io.github.hamza.geolite: # LEVEL
@@ -116,6 +116,11 @@ spring:
                 - Path=/stub/**
               filters:
                 - ReactiveGeoLite
+#                OR  (if u need to append additional request headers)
+#                - name: ReactiveGeoLite
+#                  args:
+#                    additionalHeaders:
+#                      - user-agent
 ```
 
 #### webmvc

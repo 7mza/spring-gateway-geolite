@@ -20,7 +20,9 @@ class ReactiveGeoLiteGatewayFilterFactory(
     private val properties: GeoliteProperties,
 ) : AbstractGatewayFilterFactory<ReactiveGeoLiteGatewayFilterFactory.Companion.Config>(Config::class.java) {
     companion object {
-        class Config
+        data class Config(
+            val additionalHeaders: List<String>? = null,
+        )
     }
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -33,13 +35,22 @@ class ReactiveGeoLiteGatewayFilterFactory(
                         ?.address
                         ?.hostAddress
                     ?: "0.0.0.0"
+            val wantedHeaders = config.additionalHeaders?.map { it.lowercase() }?.toSet()
+            val additionalHeaders =
+                exchange.request.headers
+                    .mapKeys { it.key.lowercase() }
+                    .filter { it.key in (wantedHeaders ?: emptySet()) }
             Mono.zip(
                 geoLiteService
                     .city(xForwardedFor),
                 geoLiteService
                     .asn(xForwardedFor),
             ).flatMap {
-                val geoLiteData = it.t1.toDto(it.t2.toDto())
+                val geoLiteData =
+                    it.t1.toDto(
+                        asn = it.t2.toDto(),
+                        additionalHeaders = additionalHeaders.let { headers -> headers.ifEmpty { null } },
+                    )
                 val filteredJson = Commons.excludedFields(geoLiteData, properties, objectMapper)
                 val json = Commons.writeJson(filteredJson, objectMapper)
                 logger.debug("x-forwarded-for: {}", xForwardedFor)

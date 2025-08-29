@@ -16,6 +16,8 @@ data class GeoLiteData(
 data class CityData(
     val name: String? = null,
     val isoCode: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -42,6 +44,8 @@ fun CityResponse.toDto(
             CityData(
                 name = this.city.name,
                 isoCode = this.mostSpecificSubdivision.isoCode,
+                latitude = this.location.latitude,
+                longitude = this.location.longitude,
             ),
         country =
             CountryData(

@@ -38,6 +38,8 @@ val geoLiteData =
             CityData(
                 name = "Minneapolis",
                 isoCode = "MN",
+                latitude = 44.9696,
+                longitude = -93.2348,
             ),
         country =
             CountryData(
@@ -51,6 +53,15 @@ val geoLiteData =
                 ipAddress = "128.101.101.101",
                 hostAddress = "128.101.0.0",
                 prefixLength = 16,
+            ),
+    )
+
+fun GeoLiteData.withoutCoordinates(): GeoLiteData =
+    this.copy(
+        city =
+            this.city?.copy(
+                latitude = null,
+                longitude = null,
             ),
     )
 
@@ -85,7 +96,7 @@ class ReactiveGeoLiteGatewayFilterFactoryTest {
         stubFor(
             get(urlEqualTo("/stub"))
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_HTML_VALUE))
-                .withHeader("visitor_info", equalTo(Commons.writeJson(geoLiteData, objectMapper)))
+                .withHeader("visitor_info", equalTo(Commons.writeJson(geoLiteData, objectMapper))) // FIXME: lat/long are not fix
                 .willReturn(
                     aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
@@ -137,8 +148,7 @@ class ReactiveGeoLiteGatewayFilterFactoryTest {
                             objectMapper,
                         ),
                     ),
-                )
-                .willReturn(
+                ).willReturn(
                     aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
                         .withBody("hello world"),

@@ -6,6 +6,7 @@ import io.github.hamza.geolite.GeoLiteData
 import io.github.hamza.geolite.GeoliteSharedConfiguration
 import io.micrometer.tracing.BaggageManager
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.within
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.TestConfiguration
@@ -26,43 +27,62 @@ class FilterTapTestConfiguration
     ) {
         @Bean
         fun routes(builder: RouteLocatorBuilder): RouteLocator =
-            builder.routes()
+            builder
+                .routes()
                 .route("stub") {
-                    it.path("/stub")
+                    it
+                        .path("/stub")
                         .filters { f ->
-                            f.filter(geoLite.apply(ReactiveGeoLiteGatewayFilterFactory.Companion.Config()))
-                            f.filter { exchange, chain ->
-                                val baggage = baggageManager.getBaggage(properties.baggage)?.get()
-                                assertThat(baggage).isNotNull
-                                assertThat(Commons.parseJson<GeoLiteData>(baggage!!, objectMapper)).isEqualTo(geoLiteData)
-                                chain.filter(exchange)
-                            }
+                            f
+                                .filter(geoLite.apply(ReactiveGeoLiteGatewayFilterFactory.Companion.Config()))
+                                .filter { exchange, chain ->
+                                    val baggage = baggageManager.getBaggage(properties.baggage)?.get()
+                                    assertThat(baggage).isNotNull
+
+                                    val parsed = Commons.parseJson<GeoLiteData>(baggage!!, objectMapper)
+                                    assertThat(parsed.withoutCoordinates()).isEqualTo(geoLiteData.withoutCoordinates())
+
+                                    assertThat(parsed.city?.latitude)
+                                        .isCloseTo(geoLiteData.city?.latitude, within(0.1))
+                                    assertThat(parsed.city?.longitude)
+                                        .isCloseTo(geoLiteData.city?.longitude, within(0.1))
+
+                                    chain.filter(exchange)
+                                }
                         }.uri("http://localhost:$port")
                 }.route("stub2") {
-                    it.path("/stub2")
+                    it
+                        .path("/stub2")
                         .filters { f ->
-                            f.filter(
-                                geoLite.apply(
-                                    ReactiveGeoLiteGatewayFilterFactory.Companion.Config(additionalHeaders = listOf("user-agent")),
-                                ),
-                            )
-                            f.filter { exchange, chain ->
-                                val baggage = baggageManager.getBaggage(properties.baggage)?.get()
-                                assertThat(baggage).isNotNull
-                                assertThat(Commons.parseJson<GeoLiteData>(baggage!!, objectMapper))
-                                    .isEqualTo(
-                                        geoLiteData.copy(
-                                            additionalHeaders =
-                                                mapOf(
-                                                    Pair(
-                                                        "user-agent",
-                                                        listOf("ReactorNetty/1.2.9"),
-                                                    ),
-                                                ),
+                            f
+                                .filter(
+                                    geoLite.apply(
+                                        ReactiveGeoLiteGatewayFilterFactory.Companion.Config(
+                                            additionalHeaders = listOf("user-agent"),
                                         ),
-                                    )
-                                chain.filter(exchange)
-                            }
+                                    ),
+                                ).filter { exchange, chain ->
+                                    val baggage = baggageManager.getBaggage(properties.baggage)?.get()
+                                    assertThat(baggage).isNotNull
+
+                                    val parsed = Commons.parseJson<GeoLiteData>(baggage!!, objectMapper)
+                                    assertThat(parsed.withoutCoordinates())
+                                        .isEqualTo(
+                                            geoLiteData
+                                                .withoutCoordinates()
+                                                .copy(
+                                                    additionalHeaders =
+                                                        mapOf(Pair("user-agent", listOf("ReactorNetty/1.2.9"))),
+                                                ),
+                                        )
+
+                                    assertThat(parsed.city?.latitude)
+                                        .isCloseTo(geoLiteData.city?.latitude, within(0.1))
+                                    assertThat(parsed.city?.longitude)
+                                        .isCloseTo(geoLiteData.city?.longitude, within(0.1))
+
+                                    chain.filter(exchange)
+                                }
                         }.uri("http://localhost:$port")
                 }.build()
     }

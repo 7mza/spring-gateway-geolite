@@ -40,28 +40,29 @@ class ReactiveGeoLiteGatewayFilterFactory(
                 exchange.request.headers
                     .mapKeys { it.key.lowercase() }
                     .filter { it.key in (wantedHeaders ?: emptySet()) }
-            Mono.zip(
-                geoLiteService
-                    .city(xForwardedFor),
-                geoLiteService
-                    .asn(xForwardedFor),
-            ).flatMap {
-                val geoLiteData =
-                    it.t1.toDto(
-                        asn = it.t2.toDto(),
-                        additionalHeaders = additionalHeaders.let { headers -> headers.ifEmpty { null } },
+            Mono
+                .zip(
+                    geoLiteService
+                        .city(xForwardedFor),
+                    geoLiteService
+                        .asn(xForwardedFor),
+                ).flatMap {
+                    val geoLiteData =
+                        it.t1.toDto(
+                            asn = it.t2.toDto(),
+                            additionalHeaders = additionalHeaders.let { headers -> headers.ifEmpty { null } },
+                        )
+                    val filteredJson = Commons.excludedFields(geoLiteData, properties, objectMapper)
+                    val json = Commons.writeJson(filteredJson, objectMapper)
+                    logger.debug("x-forwarded-for: {}", xForwardedFor)
+                    logger.debug("baggage {}: {}", properties.baggage, json)
+                    logAtLevel(logger, "{}", properties.baggage) // force write to mdc
+                    Commons.withDynamicBaggage(
+                        tracer = tracer,
+                        key = properties.baggage,
+                        value = json,
+                        publisher = chain.filter(exchange),
                     )
-                val filteredJson = Commons.excludedFields(geoLiteData, properties, objectMapper)
-                val json = Commons.writeJson(filteredJson, objectMapper)
-                logger.debug("x-forwarded-for: {}", xForwardedFor)
-                logger.debug("baggage {}: {}", properties.baggage, json)
-                logAtLevel(logger, "{}", properties.baggage) // force write to mdc
-                Commons.withDynamicBaggage(
-                    tracer = tracer,
-                    key = properties.baggage,
-                    value = json,
-                    publisher = chain.filter(exchange),
-                )
-            }.onErrorResume { chain.filter(exchange) }
+                }.onErrorResume { chain.filter(exchange) }
         }
 }

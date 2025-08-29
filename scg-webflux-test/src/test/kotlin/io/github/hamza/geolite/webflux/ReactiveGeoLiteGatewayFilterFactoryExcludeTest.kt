@@ -36,6 +36,8 @@ val filteredGeoLiteData =
         city =
             CityData(
                 isoCode = "MN",
+                latitude = 44.9696,
+                longitude = -93.2348,
             ),
         country =
             CountryData(
@@ -76,7 +78,7 @@ class ReactiveGeoLiteGatewayFilterFactoryExcludeTest {
         stubFor(
             get(urlEqualTo("/stub"))
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_HTML_VALUE))
-                .withHeader("visitor_info", equalTo(Commons.writeJson(filteredGeoLiteData, objectMapper)))
+                .withHeader("visitor_info", equalTo(Commons.writeJson(filteredGeoLiteData, objectMapper))) // FIXME: lat/long are not fix
                 .willReturn(
                     aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)

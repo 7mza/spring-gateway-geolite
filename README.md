@@ -9,7 +9,9 @@ using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
 {
   "city": {
     "name": "Minneapolis",
-    "isoCode": "MN"
+    "isoCode": "MN",
+    "latitude": 44.9696,
+    "longitude": -93.2348
   },
   "country": {
     "name": "United States",
@@ -25,24 +27,7 @@ using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
 }
 ```
 
-this model will be accessible to log encoder in MDC & can be transformed by log collectors
-
-example with fluentd
-
-```text
-...
-<filter $tag.**>
-  @type parser
-  key_name ${geolite.baggage}
-  reserve_data true
-  remove_key_name_field true
-  emit_invalid_record_to_error false
-  <parse>
-    @type json
-  </parse>
-</filter>
-...
-```
+this model will be accessible to log encoders in MDC & can be transformed by log collectors
 
 ## usage
 

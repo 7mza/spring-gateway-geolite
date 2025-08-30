@@ -35,6 +35,7 @@ class ReactiveGeoLiteGatewayFilterFactory(
                         ?.address
                         ?.hostAddress
                     ?: "0.0.0.0"
+            val path = exchange.request.uri.path
             val wantedHeaders = config.additionalHeaders?.map { it.lowercase() }?.toSet()
             val additionalHeaders =
                 exchange.request.headers
@@ -48,21 +49,26 @@ class ReactiveGeoLiteGatewayFilterFactory(
                         .asn(xForwardedFor),
                 ).flatMap {
                     val geoLiteData =
-                        it.t1.toDto(
-                            asn = it.t2.toDto(),
+                        it.t1.cityResponse?.toDto(
+                            xForwardedFor = xForwardedFor,
+                            path = path,
+                            asn = it.t2.asnResponse?.toDto(),
                             additionalHeaders = additionalHeaders.let { headers -> headers.ifEmpty { null } },
                         )
                     val filteredJson = Commons.excludedFields(geoLiteData, properties, objectMapper)
                     val json = Commons.writeJson(filteredJson, objectMapper)
-                    logger.debug("x-forwarded-for: {}", xForwardedFor)
-                    logger.debug("baggage {}: {}", properties.baggage, json)
-                    logAtLevel(logger, "{}", properties.baggage) // force write to mdc
+                    logger.debug("x-forwarded-for: {}", xForwardedFor) // dev debug
+                    logger.debug("baggage {}: {}", properties.baggage, json) // dev debug
+                    logAtLevel(logger, "{}", properties.baggage) // actual write to mdc
                     Commons.withDynamicBaggage(
                         tracer = tracer,
                         key = properties.baggage,
                         value = json,
                         publisher = chain.filter(exchange),
                     )
-                }.onErrorResume { chain.filter(exchange) }
+                }.onErrorResume {
+                    logger.error("ReactiveGeoLiteGatewayFilterFactory: {}", it.message)
+                    chain.filter(exchange)
+                }
         }
 }

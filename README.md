@@ -7,6 +7,8 @@ using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
 
 ```json
 {
+  "xForwardedFor": "128.101.101.101",
+  "path": "/stub",
   "city": {
     "name": "Minneapolis",
     "isoCode": "MN",
@@ -23,6 +25,11 @@ using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
     "ipAddress": "128.101.101.101",
     "hostAddress": "128.101.0.0",
     "prefixLength": 16
+  },
+  "additionalHeaders": {
+    "user-agent": [
+      "ReactorNetty/1.2.9"
+    ]
   }
 }
 ```

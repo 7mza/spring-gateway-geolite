@@ -71,6 +71,8 @@ class FilterTapTestConfiguration
                                             geoLiteData
                                                 .withoutCoordinates()
                                                 .copy(
+                                                    forwardedFor = "128.101.101.101",
+                                                    path = "/stub2",
                                                     additionalHeaders =
                                                         mapOf(Pair("user-agent", listOf("ReactorNetty/1.2.9"))),
                                                 ),

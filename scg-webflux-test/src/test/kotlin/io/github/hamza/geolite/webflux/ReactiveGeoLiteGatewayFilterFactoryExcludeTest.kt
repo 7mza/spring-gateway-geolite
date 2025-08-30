@@ -33,6 +33,8 @@ import java.net.InetSocketAddress
 
 val filteredGeoLiteData =
     GeoLiteData(
+        forwardedFor = "128.101.101.101",
+        path = "/stub",
         city =
             CityData(
                 isoCode = "MN",
@@ -78,7 +80,10 @@ class ReactiveGeoLiteGatewayFilterFactoryExcludeTest {
         stubFor(
             get(urlEqualTo("/stub"))
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_HTML_VALUE))
-                .withHeader("visitor_info", equalTo(Commons.writeJson(filteredGeoLiteData, objectMapper))) // FIXME: lat/long are not fix
+                .withHeader(
+                    "visitor_info",
+                    equalTo(Commons.writeJson(filteredGeoLiteData, objectMapper)),
+                ) // FIXME: lat/long are not fix
                 .willReturn(
                     aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)

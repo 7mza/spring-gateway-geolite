@@ -1,11 +1,12 @@
 package io.github.hamza.geolite.webflux
 
-import com.maxmind.db.InvalidDatabaseException
+import io.github.hamza.geolite.AsnResponseWrapper
+import io.github.hamza.geolite.CityResponseWrapper
+import io.github.hamza.geolite.CountryResponseWrapper
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import reactor.test.StepVerifier
-import java.io.FileNotFoundException
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -19,23 +20,23 @@ class ReactiveGeoLiteServiceDbPathErrorTest {
     fun `city with with no db path`() {
         StepVerifier
             .create(service.city("0.0.0.0"))
-            .expectError(InvalidDatabaseException::class.java)
-            .verify()
+            .expectNext(CityResponseWrapper())
+            .verifyComplete()
     }
 
     @Test
     fun `country with wrong db path`() {
         StepVerifier
             .create(service.country("0.0.0.0"))
-            .expectError(FileNotFoundException::class.java)
-            .verify()
+            .expectNext(CountryResponseWrapper())
+            .verifyComplete()
     }
 
     @Test
     fun `asn with correct path but wrong db`() {
         StepVerifier
             .create(service.asn("0.0.0.0"))
-            .expectError(UnsupportedOperationException::class.java)
-            .verify()
+            .expectNext(AsnResponseWrapper())
+            .verifyComplete()
     }
 }

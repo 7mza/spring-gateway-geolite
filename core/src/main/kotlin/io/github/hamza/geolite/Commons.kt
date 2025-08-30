@@ -48,24 +48,34 @@ class Commons {
         }
 
         fun excludedFields(
-            data: GeoLiteData,
+            data: GeoLiteData?,
             properties: GeoliteSharedConfiguration.GeoliteProperties,
             mapper: ObjectMapper,
-        ): JsonNode {
-            val node = mapper.valueToTree<ObjectNode>(data)
-            properties.exclude.forEach { path ->
-                val parts = path.split(".")
-                if (parts.size == 1) {
-                    node.remove(parts[0])
-                } else if (parts.size == 2 && parts[1] == "*") {
-                    node.remove(parts[0])
-                } else if (parts.size == 2) {
-                    val (parentKey, childKey) = parts
-                    val parentNode = node[parentKey] as? ObjectNode
-                    parentNode?.remove(childKey)
+        ): JsonNode? {
+            try {
+                val node = mapper.valueToTree<ObjectNode>(data)
+                properties.exclude.forEach { path ->
+                    val parts = path.split(".")
+                    when (parts.size) {
+                        1 -> {
+                            node.remove(parts[0])
+                        }
+
+                        2 if parts[1] == "*" -> {
+                            node.remove(parts[0])
+                        }
+
+                        2 -> {
+                            val (parentKey, childKey) = parts
+                            val parentNode = node[parentKey] as? ObjectNode
+                            parentNode?.remove(childKey)
+                        }
+                    }
                 }
+                return node
+            } catch (_: Exception) {
+                return null
             }
-            return node
         }
     }
 }

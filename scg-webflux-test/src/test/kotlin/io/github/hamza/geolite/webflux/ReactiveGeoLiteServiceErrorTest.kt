@@ -1,6 +1,8 @@
 package io.github.hamza.geolite.webflux
 
-import com.maxmind.geoip2.exception.AddressNotFoundException
+import io.github.hamza.geolite.AsnResponseWrapper
+import io.github.hamza.geolite.CityResponseWrapper
+import io.github.hamza.geolite.CountryResponseWrapper
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -15,23 +17,23 @@ class ReactiveGeoLiteServiceErrorTest {
     fun `city with non existent ip`() {
         StepVerifier
             .create(service.city("0.0.0.0"))
-            .expectError(AddressNotFoundException::class.java)
-            .verify()
+            .expectNext(CityResponseWrapper())
+            .verifyComplete()
     }
 
     @Test
     fun `country with non existent ip`() {
         StepVerifier
             .create(service.country("0.0.0.0"))
-            .expectError(AddressNotFoundException::class.java)
-            .verify()
+            .expectNext(CountryResponseWrapper())
+            .verifyComplete()
     }
 
     @Test
     fun `asn with non existent ip`() {
         StepVerifier
             .create(service.asn("0.0.0.0"))
-            .expectError(AddressNotFoundException::class.java)
-            .verify()
+            .expectNext(AsnResponseWrapper())
+            .verifyComplete()
     }
 }

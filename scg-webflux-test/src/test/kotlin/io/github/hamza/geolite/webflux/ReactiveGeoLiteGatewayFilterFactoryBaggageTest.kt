@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -81,7 +82,7 @@ class ReactiveGeoLiteGatewayFilterFactoryBaggageTest {
             .thenReturn(InetSocketAddress(inetAddress, 0))
 
         stubFor(
-            get(urlEqualTo("/stub2"))
+            get(urlPathEqualTo("/stub2"))
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_HTML_VALUE))
                 .willReturn(
                     aResponse()
@@ -93,7 +94,7 @@ class ReactiveGeoLiteGatewayFilterFactoryBaggageTest {
         val response =
             webTestClient
                 .get()
-                .uri("/stub2")
+                .uri("/stub2?toto=true&tata=123")
                 .accept(MediaType.TEXT_HTML)
                 .exchange()
                 .expectStatus()

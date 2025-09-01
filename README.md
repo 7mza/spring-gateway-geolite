@@ -1,7 +1,11 @@
 # Spring Cloud Gateway GeoLite2
 
-SCG filter to automatically transform "X-Forwarded-For" header to GeoIP2 data and add it to MDC/tracing baggage
-using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
+SCG GeoLite2 integration and bot detection
+
+* automatically transforms X-Forwarded-For header to GeoIP2 data and add it to MDC/tracing baggage
+  using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
+* do basic bot scoring and detection (WIP)
+* reject request if bot score threshold is reached
 
 [data model](./core/src/main/kotlin/io/github/hamza/geolite/Models.kt)
 
@@ -9,6 +13,7 @@ using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
 {
   "xForwardedFor": "128.101.101.101",
   "path": "/stub",
+  "query": "toto=true&tata=123",
   "city": {
     "name": "Minneapolis",
     "isoCode": "MN",
@@ -30,11 +35,13 @@ using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
     "user-agent": [
       "ReactorNetty/1.2.9"
     ]
-  }
+  },
+  "botScore": 10,
+  "isBot": false
 }
 ```
 
-this model will be accessible to log encoders in MDC & can be transformed by log collectors
+this model will be accessible to log encoders in MDC & can be prepared by log collectors
 
 ## usage
 
@@ -66,14 +73,18 @@ download latest GeoLite dbs from [P3TERX/GeoLite.mmdb](https://github.com/P3TERX
 
 ```yaml
 geolite:
-  baggage: # MDC field / baggage name
+  baggage: visitor_info # MDC field / baggage name
+  blockBot: false # block request if bot score threshold is reached, return 429
+  botScoreThreshold: 12 # bot score detection threshold
+  cached: true # enable reactor cache over database files
   db:
-    asn: # spring ResourceLoader relative path to db file
-    city: # example: geolite/GeoLite2-City.mmdb
-    country: # ...
-  exclude: # fields to exclude
-  # - asn.ipAddress
-  # or - asn.*
+    # spring ResourceLoader relative path to db file
+    asn: geolite/GeoLite2-ASN.mmdb
+    city: geolite/GeoLite2-City.mmdb
+    country: geolite/GeoLite2-Country.mmdb
+  exclude: [ ] # fields to exclude from MDC
+#    - asn.ipAddress # or
+#    - asn.* # or
   maxTrustedIndex: 1
 management:
   tracing:
@@ -81,14 +92,14 @@ management:
       correlation:
         fields:
           - ${geolite.baggage}
-#      remote-fields:
-#        - ${geolite.baggage}
+#        remote-fields: # to forward in headers 
+#          - ${geolite.baggage}
 logging:
   level:
-    io.github.hamza.geolite: # LEVEL
+    io.github.hamza.geolite: WARN # log level you are using to send logs to collector
 ```
 
-true non-proxy "X-Forwarded-For" is resolved
+true non-proxy X-Forwarded-For is resolved
 using [maxTrustedIndex](https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webflux/request-predicates-factories.html#modifying-the-way-remote-addresses-are-resolved)
 
 ### then apply as any other filter on your routes
@@ -102,17 +113,38 @@ spring:
       server:
         webflux:
           routes:
-            - id: stub
-              uri: http://localhost:${wiremock.server.port}
+
+            # basic usage
+            - id: id1
+              uri: uri1
               predicates:
-                - Path=/stub/**
+                - ...
               filters:
                 - ReactiveGeoLite
-#                OR  (if u need to append additional request headers)
-#                - name: ReactiveGeoLite
-#                  args:
-#                    additionalHeaders:
-#                      - user-agent
+
+            # append specific headers
+            - id: id2
+              uri: uri2
+              predicates:
+                - ...
+              filters:
+                - ReactiveGeoLite
+                - name: ReactiveGeoLite
+                  args:
+                    additionalHeaders:
+                      - user-agent
+
+            # append all headers (useful to study bots behavior)
+            - id: id3
+              uri: uri3
+              predicates:
+                - ...
+              filters:
+                - ReactiveGeoLite
+                - name: ReactiveGeoLite
+                  args:
+                    additionalHeaders:
+                      - "*"
 ```
 
 #### webmvc
@@ -123,6 +155,8 @@ spring:
 
 **because of how free GeoLite databases are distributed, this filter require increased Xms/Xmx reservation to prevent
 OOM**
+
+`-Xms1g -Xmx1536m` is recommend but you should test according to your traffic
 
 ### support
 

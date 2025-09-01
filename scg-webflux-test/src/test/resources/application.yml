@@ -1,5 +1,8 @@
 geolite:
   baggage: visitor_info
+  blockBot: false
+  botScoreThreshold: 12
+  cached: false
   db:
     asn: geolite/GeoLite2-ASN.mmdb
     city: geolite/GeoLite2-City.mmdb
@@ -32,6 +35,7 @@ spring:
                 - Path=/stub/**
               filters:
                 - ReactiveGeoLite
+
             - id: stub2
               uri: http://localhost:${wiremock.server.port}
               predicates:
@@ -41,6 +45,23 @@ spring:
                   args:
                     additionalHeaders:
                       - user-agent
+
+            - id: stub3
+              uri: http://localhost:${wiremock.server.port}
+              predicates:
+                - Path=/stub3/**
+              filters:
+                - ReactiveGeoLite
+
+            - id: stub4
+              uri: http://localhost:${wiremock.server.port}
+              predicates:
+                - Path=/stub4/**
+              filters:
+                - name: ReactiveGeoLite
+                  args:
+                    additionalHeaders:
+                      - "*"
   config:
     activate:
       on-profile: default

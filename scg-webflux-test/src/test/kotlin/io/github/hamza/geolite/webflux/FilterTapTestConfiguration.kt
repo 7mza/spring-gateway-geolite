@@ -14,6 +14,9 @@ import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFac
 import org.springframework.cloud.gateway.route.RouteLocator
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder
 import org.springframework.context.annotation.Bean
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 
 @TestConfiguration
 class FilterTapTestConfiguration
@@ -47,6 +50,9 @@ class FilterTapTestConfiguration
                                     assertThat(parsed.city?.longitude)
                                         .isCloseTo(geoLiteData.city?.longitude, within(0.1))
 
+                                    assertThat(parsed.getIsBot()).isFalse
+                                    assertThat(parsed.getBotScore()).isLessThan(properties.botScoreThreshold)
+
                                     chain.filter(exchange)
                                 }
                         }.uri("http://localhost:$port")
@@ -58,7 +64,7 @@ class FilterTapTestConfiguration
                                 .filter(
                                     geoLite.apply(
                                         ReactiveGeoLiteGatewayFilterFactory.Companion.Config(
-                                            additionalHeaders = listOf("user-agent"),
+                                            additionalHeaders = listOf(HttpHeaders.USER_AGENT.lowercase()),
                                         ),
                                     ),
                                 ).filter { exchange, chain ->
@@ -71,10 +77,15 @@ class FilterTapTestConfiguration
                                             geoLiteData
                                                 .withoutCoordinates()
                                                 .copy(
-                                                    forwardedFor = "128.101.101.101",
                                                     path = "/stub2",
+                                                    query = "toto=true&tata=123",
                                                     additionalHeaders =
-                                                        mapOf(Pair("user-agent", listOf("ReactorNetty/1.2.9"))),
+                                                        mapOf(
+                                                            Pair(
+                                                                HttpHeaders.USER_AGENT.lowercase(),
+                                                                listOf("ReactorNetty/1.2.9"),
+                                                            ),
+                                                        ),
                                                 ),
                                         )
 
@@ -82,6 +93,77 @@ class FilterTapTestConfiguration
                                         .isCloseTo(geoLiteData.city?.latitude, within(0.1))
                                     assertThat(parsed.city?.longitude)
                                         .isCloseTo(geoLiteData.city?.longitude, within(0.1))
+
+                                    assertThat(parsed.getIsBot()).isFalse
+                                    assertThat(parsed.getBotScore()).isLessThan(properties.botScoreThreshold)
+
+                                    chain.filter(exchange)
+                                }
+                        }.uri("http://localhost:$port")
+                }.route("stub3") {
+                    it
+                        .path("/stub3")
+                        .filters { f ->
+                            f
+                                .filter(
+                                    geoLite.apply(
+                                        ReactiveGeoLiteGatewayFilterFactory.Companion.Config(
+                                            additionalHeaders = listOf(HttpHeaders.USER_AGENT.lowercase()),
+                                        ),
+                                    ),
+                                ).filter { exchange, _ ->
+                                    val baggage = baggageManager.getBaggage(properties.baggage)?.get()
+                                    assertThat(baggage).isNotNull
+
+                                    val parsed = Commons.parseJson<GeoLiteData>(baggage!!, objectMapper)
+                                    assertThat(parsed).isEqualTo(
+                                        GeoLiteData(
+                                            forwardedFor = "0.0.0.0",
+                                            path = "/stub3",
+                                            botScoreThreshold = properties.botScoreThreshold,
+                                        ),
+                                    )
+                                    assertThat(parsed.getIsBot()).isTrue
+                                    assertThat(parsed.getBotScore()).isGreaterThanOrEqualTo(properties.botScoreThreshold)
+
+                                    val response = exchange.response
+                                    response.statusCode = HttpStatus.TOO_MANY_REQUESTS
+                                    response.setComplete()
+                                }
+                        }.uri("http://localhost:$port")
+                }.route("stub4") {
+                    it
+                        .path("/stub4")
+                        .filters { f ->
+                            f
+                                .filter(
+                                    geoLite.apply(
+                                        ReactiveGeoLiteGatewayFilterFactory.Companion.Config(
+                                            additionalHeaders = listOf("*"),
+                                        ),
+                                    ),
+                                ).filter { exchange, chain ->
+                                    val baggage = baggageManager.getBaggage(properties.baggage)?.get()
+                                    assertThat(baggage).isNotNull
+
+                                    val parsed = Commons.parseJson<GeoLiteData>(baggage!!, objectMapper)
+
+                                    assertThat(parsed.additionalHeaders).isNotNull
+                                    val headers = parsed.additionalHeaders!!
+                                    assertThat(headers.size).isEqualTo(7)
+                                    assertThat(headers[HttpHeaders.ACCEPT_ENCODING.lowercase()])
+                                        .isNotNull()
+                                        .contains("gzip")
+                                    assertThat(headers[HttpHeaders.USER_AGENT.lowercase()])
+                                        .isNotNull()
+                                        .contains("ReactorNetty/1.2.9")
+                                    assertThat(headers[HttpHeaders.HOST.lowercase()])
+                                        .isNotNull()
+                                        .anyMatch { l -> l.contains("localhost") }
+                                    assertThat(headers["webtestclient-request-id"]).isNotNull().contains("1")
+                                    assertThat(headers[HttpHeaders.ACCEPT.lowercase()]).isNotNull().contains(MediaType.TEXT_HTML_VALUE)
+                                    assertThat(headers["toto"]).isNotNull().contains("tata")
+                                    assertThat(headers["titi"]).isNotNull().contains("a1", "a2")
 
                                     chain.filter(exchange)
                                 }

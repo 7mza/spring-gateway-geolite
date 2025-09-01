@@ -1,27 +1,69 @@
 package io.github.hamza.geolite
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.maxmind.geoip2.model.AsnResponse
 import com.maxmind.geoip2.model.CityResponse
 import com.maxmind.geoip2.model.CountryResponse
+import org.springframework.http.HttpHeaders
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class GeoLiteData(
     @param:JsonProperty("xForwardedFor")
     val forwardedFor: String? = null,
     val path: String? = null,
+    val query: String? = null,
     val city: CityData? = null,
     val country: CountryData? = null,
     val asn: AsnData? = null,
     val additionalHeaders: Map<String, List<String>>? = null,
+    val botScoreThreshold: Int? = null,
 ) {
-    @JsonIgnore
-    fun isBot(): Boolean =
-        this.city?.isBot() ?: false &&
-            this.country?.isBot() ?: false &&
-            this.asn?.isBot() ?: false
+    @JsonProperty("isBot")
+    fun getIsBot(): Boolean = this.getBotScore() >= botScoreThreshold!! // FIXME: isBot() not working ?
+
+    @JsonProperty
+    fun getBotScore(): Int = this.scoreCity() + this.scoreCountry() + this.scoreAsn() + this.scoreHeaders()
+
+    private fun scoreCity(): Int {
+        var score = 0
+        if (this.city?.name.isNullOrEmpty()) score += 1
+        if (this.city?.isoCode.isNullOrEmpty()) score += 1
+        if (this.city?.latitude == null) score += 1
+        if (this.city?.longitude == null) score += 1
+        return score
+    }
+
+    private fun scoreCountry(): Int {
+        var score = 0
+        if (this.country?.name.isNullOrEmpty()) score += 1
+        if (this.country?.isoCode.isNullOrEmpty()) score += 1
+        return score
+    }
+
+    private fun scoreAsn(): Int {
+        var score = 0
+        if (this.asn?.autonomousSystemNumber == null) score += 1
+        if (this.asn?.autonomousSystemOrganization.isNullOrEmpty()) score += 1
+        if (this.asn?.ipAddress.isNullOrEmpty()) score += 1
+        if (this.asn?.hostAddress.isNullOrEmpty()) score += 1
+        if (this.asn?.prefixLength == null) score += 1
+        return score
+    }
+
+    // FIXME: from conf
+    private fun scoreHeaders(): Int {
+        var score = 0
+        val headers = additionalHeaders ?: emptyMap()
+        // FIXME: case sensitive
+        if (!headers.containsKey(HttpHeaders.USER_AGENT)) score += 1
+        // if (!headers.containsKey("accept-language")) score += 1
+        // if (!headers.containsKey("accept")) score += 1
+        // if (!headers.containsKey("referer")) score += 1
+        // if (!headers.containsKey("connection")) score += 1
+        // if (!headers.containsKey("sec-fetch-site")) score += 1
+        return score
+    }
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -30,25 +72,13 @@ data class CityData(
     val isoCode: String? = null,
     val latitude: Double? = null,
     val longitude: Double? = null,
-) {
-    @JsonIgnore
-    fun isBot(): Boolean =
-        this.name.isNullOrEmpty() &&
-            this.isoCode.isNullOrEmpty() &&
-            this.latitude == null &&
-            this.longitude == null
-}
+)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class CountryData(
     val name: String? = null,
     val isoCode: String? = null,
-) {
-    @JsonIgnore
-    fun isBot(): Boolean =
-        this.name.isNullOrEmpty() &&
-            this.isoCode.isNullOrEmpty()
-}
+)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class AsnData(
@@ -57,36 +87,20 @@ data class AsnData(
     val ipAddress: String? = null,
     val hostAddress: String? = null,
     val prefixLength: Int? = null,
-) {
-    @JsonIgnore
-    fun isBot(): Boolean =
-        this.autonomousSystemNumber == null &&
-            this.autonomousSystemOrganization.isNullOrEmpty()
-}
+)
 
-fun CityResponse.toDto(
-    xForwardedFor: String,
-    path: String,
-    asn: AsnData? = null,
-    additionalHeaders: Map<String, List<String>>? = null,
-): GeoLiteData =
-    GeoLiteData(
-        forwardedFor = xForwardedFor,
-        path = path,
-        city =
-            CityData(
-                name = this.city.name,
-                isoCode = this.mostSpecificSubdivision.isoCode,
-                latitude = this.location.latitude,
-                longitude = this.location.longitude,
-            ),
-        country =
-            CountryData(
-                name = this.country.name,
-                isoCode = this.country.isoCode,
-            ),
-        asn = asn,
-        additionalHeaders = additionalHeaders,
+fun CityResponse.toCityDto(): CityData =
+    CityData(
+        name = this.city.name,
+        isoCode = this.mostSpecificSubdivision.isoCode,
+        latitude = this.location.latitude,
+        longitude = this.location.longitude,
+    )
+
+fun CityResponse.toCountryDto(): CountryData =
+    CountryData(
+        name = this.country.name,
+        isoCode = this.country.isoCode,
     )
 
 fun AsnResponse.toDto(): AsnData =

@@ -30,6 +30,9 @@ class GeoliteSharedConfiguration {
     @RefreshScope
     class GeoliteProperties {
         lateinit var baggage: String
+        var blockBot: Boolean? = null
+        var botScoreThreshold: Int? = null
+        var cached: Boolean? = false
         lateinit var db: DbsPaths
         lateinit var exclude: List<String>
         var maxTrustedIndex: Int? = null

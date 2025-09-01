@@ -1,16 +1,11 @@
 package io.github.hamza.geolite.webflux
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
-import com.github.tomakehurst.wiremock.client.WireMock.reset
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
-import io.github.hamza.geolite.Commons
-import io.github.hamza.geolite.GeoliteSharedConfiguration
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
@@ -21,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.actuate.observability.AutoCon
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver
+import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -29,48 +25,29 @@ import org.springframework.web.server.ServerWebExchange
 import java.net.InetAddress
 import java.net.InetSocketAddress
 
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = ["geolite.exclude=city.name, country.isoCode, asn.*"],
-)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureObservability
-class ReactiveGeoLiteGatewayFilterFactoryExcludeTest {
+@Import(FilterTapTestConfiguration::class)
+class ReactiveGeoLiteGatewayFilterFactoryAllHeadersTest {
     @Autowired
     private lateinit var webTestClient: WebTestClient
-
-    @Autowired
-    private lateinit var objectMapper: ObjectMapper
-
-    @Autowired
-    private lateinit var properties: GeoliteSharedConfiguration.GeoliteProperties
 
     @MockitoBean("GeoLiteForwardedResolver")
     private lateinit var resolver: XForwardedRemoteAddressResolver
 
-    @AfterEach
-    fun afterEach() {
-        reset()
-    }
-
     @Test
-    @DisplayName("GeoLite filter should exclude configured fields")
-    fun `GeoLite filter propagate headers`() {
+    @DisplayName("GeoLite filter should collect all headers if configured with *")
+    fun `GeoLite filter collect all logs`() {
         val inetAddress = mock(InetAddress::class.java)
         whenever(inetAddress.hostAddress)
-            .thenReturn("128.101.101.101")
+            .thenReturn("0.0.0.0")
         whenever(resolver.resolve(any(ServerWebExchange::class.java)))
             .thenReturn(InetSocketAddress(inetAddress, 0))
 
-        val filteredGeoLiteData = Commons.excludedFields(geoLiteData, properties, objectMapper)
-
         stubFor(
-            get(urlEqualTo("/stub"))
+            get(urlEqualTo("/stub4"))
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_HTML_VALUE))
-                .withHeader(
-                    properties.baggage,
-                    equalTo(Commons.writeJson(filteredGeoLiteData, objectMapper)),
-                ) // FIXME: lat/long are not fix
                 .willReturn(
                     aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
@@ -81,8 +58,10 @@ class ReactiveGeoLiteGatewayFilterFactoryExcludeTest {
         val response =
             webTestClient
                 .get()
-                .uri("/stub")
+                .uri("/stub4")
                 .accept(MediaType.TEXT_HTML)
+                .header("toto", "tata")
+                .header("titi", "a1", "a2")
                 .exchange()
                 .expectStatus()
                 .isOk

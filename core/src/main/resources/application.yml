@@ -1,5 +1,8 @@
 geolite:
   baggage: visitor_info
+  blockBot: false
+  botScoreThreshold: 12
+  cached: true
   db:
     asn: geolite/GeoLite2-ASN.mmdb
     city: geolite/GeoLite2-City.mmdb

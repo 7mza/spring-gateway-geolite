@@ -51,30 +51,31 @@ class Commons {
             data: GeoLiteData?,
             properties: GeoliteSharedConfiguration.GeoliteProperties,
             mapper: ObjectMapper,
-        ): JsonNode? {
+        ): JsonNode? =
             try {
                 val node = mapper.valueToTree<ObjectNode>(data)
                 properties.exclude.forEach { path ->
-                    val parts = path.split(".")
-                    when (parts.size) {
-                        1 -> {
-                            node.remove(parts[0])
-                        }
-
-                        2 if parts[1] == "*" -> {
-                            node.remove(parts[0])
-                        }
-
-                        2 -> {
-                            val (parentKey, childKey) = parts
-                            val parentNode = node[parentKey] as? ObjectNode
-                            parentNode?.remove(childKey)
-                        }
-                    }
+                    removeJsonPath(node, path.split("."))
                 }
-                return node
+                node
             } catch (_: Exception) {
-                return null
+                null
+            }
+
+        private fun removeJsonPath(
+            node: JsonNode?,
+            path: List<String>,
+        ) {
+            if (node == null || path.isEmpty()) return
+            val current = path[0]
+            val rest = path.drop(1)
+            if (node is ObjectNode) {
+                if (rest.isEmpty()) {
+                    node.remove(current)
+                } else {
+                    val child = node[current]
+                    removeJsonPath(child, rest)
+                }
             }
         }
     }

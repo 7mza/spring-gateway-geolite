@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory
 import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver
 import org.springframework.context.annotation.Bean
+import org.springframework.core.env.Environment
 import org.springframework.core.io.ResourceLoader
 
 @AutoConfiguration
@@ -39,6 +40,7 @@ class GeoliteConfiguration {
         tracer: Tracer,
         @Qualifier("GeoLiteForwardedResolver") resolver: XForwardedRemoteAddressResolver,
         properties: GeoliteProperties,
+        environment: Environment,
     ): AbstractGatewayFilterFactory<ReactiveGeoLiteGatewayFilterFactory.Companion.Config> =
         ReactiveGeoLiteGatewayFilterFactory(
             geoLiteService = geoLiteService,
@@ -46,5 +48,6 @@ class GeoliteConfiguration {
             tracer = tracer,
             resolver = resolver,
             properties = properties,
+            environment = environment,
         )
 }

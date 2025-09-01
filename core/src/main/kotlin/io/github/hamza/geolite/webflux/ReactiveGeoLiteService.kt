@@ -1,10 +1,12 @@
 package io.github.hamza.geolite.webflux
 
+import com.maxmind.db.CHMCache
 import com.maxmind.geoip2.DatabaseReader
 import io.github.hamza.geolite.AsnResponseWrapper
 import io.github.hamza.geolite.CityResponseWrapper
 import io.github.hamza.geolite.CountryResponseWrapper
 import io.github.hamza.geolite.GeoliteSharedConfiguration.GeoliteProperties
+import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -25,20 +27,47 @@ class ReactiveGeoLiteService(
     private val cityDbReaderMono: Mono<DatabaseReader> =
         fileReader
             .readFileAsInputStream("classpath:${properties.db.city}")
-            .map { DatabaseReader.Builder(it).build() }
+            .map { DatabaseReader.Builder(it).withCache(CHMCache()).build() }
             .subscribeOn(Schedulers.boundedElastic())
+            .let { mono ->
+                if (properties.cached == true) {
+                    mono
+                        .onErrorResume { Mono.empty() }
+                        .cache()
+                } else {
+                    mono
+                }
+            }
 
     private val countryDbReaderMono: Mono<DatabaseReader> =
         fileReader
             .readFileAsInputStream("classpath:${properties.db.country}")
-            .map { DatabaseReader.Builder(it).build() }
+            .map { DatabaseReader.Builder(it).withCache(CHMCache()).build() }
             .subscribeOn(Schedulers.boundedElastic())
+            .let { mono ->
+                if (properties.cached == true) {
+                    mono
+                        .onErrorResume { Mono.empty() }
+                        .cache()
+                } else {
+                    mono
+                }
+            }
 
     private val asnDbReaderMono: Mono<DatabaseReader> =
         fileReader
             .readFileAsInputStream("classpath:${properties.db.asn}")
-            .map { DatabaseReader.Builder(it).build() }
+            .map { DatabaseReader.Builder(it).withCache(CHMCache()).build() }
             .subscribeOn(Schedulers.boundedElastic())
+            .let { mono ->
+                if (properties.cached == true) {
+                    mono
+                        .onErrorResume { Mono.empty() }
+                        .cache()
+                } else {
+                    mono
+                }
+            }
 
     override fun city(ip: String): Mono<CityResponseWrapper> =
         cityDbReaderMono
@@ -76,4 +105,11 @@ class ReactiveGeoLiteService(
                 logger.warn("asn: {}", it.message)
                 Mono.just(AsnResponseWrapper())
             }
+
+    @PreDestroy
+    fun closeDatabaseReader() {
+        cityDbReaderMono.doOnNext { it.close() }.subscribe()
+        countryDbReaderMono.doOnNext { it.close() }.subscribe()
+        asnDbReaderMono.doOnNext { it.close() }.subscribe()
+    }
 }

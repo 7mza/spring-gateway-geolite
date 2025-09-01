@@ -47,8 +47,6 @@ subprojects {
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
         mockitoAgent("org.mockito:mockito-core:$mockitoCoreVersion") { isTransitive = false }
-
-        testImplementation("io.projectreactor.tools:blockhound-junit-platform:1.0.13.RELEASE")
     }
 
     java {

@@ -7,11 +7,13 @@ import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.reset
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import io.github.hamza.geolite.AsnData
 import io.github.hamza.geolite.CityData
 import io.github.hamza.geolite.Commons
 import io.github.hamza.geolite.CountryData
 import io.github.hamza.geolite.GeoLiteData
+import io.github.hamza.geolite.GeoliteSharedConfiguration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
@@ -36,6 +38,7 @@ val geoLiteData =
     GeoLiteData(
         forwardedFor = "128.101.101.101",
         path = "/stub",
+        query = null,
         city =
             CityData(
                 name = "Minneapolis",
@@ -56,6 +59,7 @@ val geoLiteData =
                 hostAddress = "128.101.0.0",
                 prefixLength = 16,
             ),
+        botScoreThreshold = 12,
     )
 
 fun GeoLiteData.withoutCoordinates(): GeoLiteData =
@@ -76,6 +80,9 @@ class ReactiveGeoLiteGatewayFilterFactoryTest {
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
+
+    @Autowired
+    private lateinit var properties: GeoliteSharedConfiguration.GeoliteProperties
 
     @MockitoBean("GeoLiteForwardedResolver")
     private lateinit var resolver: XForwardedRemoteAddressResolver
@@ -99,7 +106,7 @@ class ReactiveGeoLiteGatewayFilterFactoryTest {
             get(urlEqualTo("/stub"))
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_HTML_VALUE))
                 .withHeader(
-                    "visitor_info",
+                    properties.baggage,
                     equalTo(Commons.writeJson(geoLiteData, objectMapper)),
                 ) // FIXME: lat/long are not fix
                 .willReturn(
@@ -135,19 +142,20 @@ class ReactiveGeoLiteGatewayFilterFactoryTest {
             .thenReturn(InetSocketAddress(inetAddress, 0))
 
         stubFor(
-            get(urlEqualTo("/stub2"))
+            get(urlPathEqualTo("/stub2"))
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.TEXT_HTML_VALUE))
                 .withHeader(
-                    "visitor_info",
+                    properties.baggage,
                     equalTo(
                         Commons.writeJson(
                             geoLiteData.copy(
                                 forwardedFor = "128.101.101.101",
                                 path = "/stub2",
+                                query = "toto=true&tata=123",
                                 additionalHeaders =
                                     mapOf(
                                         Pair(
-                                            "user-agent",
+                                            HttpHeaders.USER_AGENT.lowercase(),
                                             listOf("ReactorNetty/1.2.9"),
                                         ),
                                     ),
@@ -165,7 +173,7 @@ class ReactiveGeoLiteGatewayFilterFactoryTest {
         val response =
             webTestClient
                 .get()
-                .uri("/stub2")
+                .uri("/stub2?toto=true&tata=123")
                 .accept(MediaType.TEXT_HTML)
                 .exchange()
                 .expectStatus()

@@ -7,7 +7,7 @@ geolite:
     asn: geolite/GeoLite2-ASN.mmdb
     city: geolite/GeoLite2-City.mmdb
     country: geolite/GeoLite2-Country.mmdb
-  exclude: [ ]
+  exclude: []
   maxTrustedIndex: 1
 logging:
   level:

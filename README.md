@@ -2,10 +2,10 @@
 
 SCG GeoLite2 integration and bot detection
 
-* automatically transforms X-Forwarded-For header to GeoIP2 data and add it to MDC/tracing baggage
+- automatically transforms X-Forwarded-For header to GeoIP2 data and add it to MDC/tracing baggage
   using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
-* do basic bot scoring and detection (WIP)
-* reject request if bot score threshold is reached
+- do basic bot scoring and detection (WIP)
+- reject request if bot score threshold is reached
 
 [data model](./core/src/main/kotlin/io/github/hamza/geolite/Models.kt)
 
@@ -32,9 +32,7 @@ SCG GeoLite2 integration and bot detection
     "prefixLength": 16
   },
   "additionalHeaders": {
-    "user-agent": [
-      "ReactorNetty/1.2.9"
-    ]
+    "user-agent": ["ReactorNetty/1.2.9"]
   },
   "botScore": 10,
   "isBot": false
@@ -60,9 +58,9 @@ implementation("io.github.7mza:spring-gateway-geolite:$latest")
 
 autoconfiguration conditional on
 
-* spring-cloud-starter-gateway-server-webflux
-* io.micrometer:micrometer-tracing-bridge-otel
-* actuator
+- spring-cloud-starter-gateway-server-webflux
+- io.micrometer:micrometer-tracing-bridge-otel
+- actuator
 
 micrometer is needed to [pass baggage to
 MDC](https://docs.spring.io/spring-boot/reference/actuator/tracing.html#actuator.micrometer-tracing.baggage)
@@ -82,7 +80,7 @@ geolite:
     asn: geolite/GeoLite2-ASN.mmdb
     city: geolite/GeoLite2-City.mmdb
     country: geolite/GeoLite2-Country.mmdb
-  exclude: [ ] # fields to exclude from MDC
+  exclude: [] # fields to exclude from MDC
 #    - asn.ipAddress # or
 #    - asn.* # or
   maxTrustedIndex: 1
@@ -92,7 +90,7 @@ management:
       correlation:
         fields:
           - ${geolite.baggage}
-#        remote-fields: # to forward in headers 
+#        remote-fields: # to forward in headers
 #          - ${geolite.baggage}
 logging:
   level:
@@ -113,7 +111,6 @@ spring:
       server:
         webflux:
           routes:
-
             # basic usage
             - id: id1
               uri: uri1
@@ -160,18 +157,18 @@ OOM**
 
 ### support
 
-* spring boot 3.4+.* / spring cloud 2025.*
+- spring boot 3.4+ / spring cloud 2025
 
 ### archi
 
-* core: implementation
-* scg-*-test: integration tests on a real SCG / wiremock
+- core: implementation
+- scg-\*-test: integration tests on a real SCG / wiremock
 
 ### local build
 
 [sdkman](https://sdkman.io)
 
-* jdk 17 for broader support
+- jdk 17 for broader support
 
 ```shell
 sdk env install

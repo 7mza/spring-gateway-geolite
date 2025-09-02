@@ -1,10 +1,10 @@
 # Spring Cloud Gateway GeoLite2
 
-SCG GeoLite2 integration and bot detection
+SCG auto configured filter for GeoLite2 integration and bot detection
 
 - automatically transforms X-Forwarded-For header to GeoIP2 data and add it to MDC/tracing baggage
   using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
-- do basic bot scoring and detection (WIP)
+- basic bot scoring and detection (WIP)
 - reject request if bot score threshold is reached
 
 [data model](./core/src/main/kotlin/io/github/hamza/geolite/Models.kt)

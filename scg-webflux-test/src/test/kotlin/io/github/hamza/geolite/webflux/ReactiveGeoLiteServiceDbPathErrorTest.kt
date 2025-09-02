@@ -17,7 +17,7 @@ class ReactiveGeoLiteServiceDbPathErrorTest {
     private lateinit var service: IReactiveGeoLiteService
 
     @Test
-    fun `city with with no db path`() {
+    fun `city with with no db path should return empty wrapper and not throw an exception`() {
         StepVerifier
             .create(service.city("0.0.0.0"))
             .expectNext(CityResponseWrapper())
@@ -25,7 +25,7 @@ class ReactiveGeoLiteServiceDbPathErrorTest {
     }
 
     @Test
-    fun `country with wrong db path`() {
+    fun `country with wrong db path should return empty wrapper and not throw an exception`() {
         StepVerifier
             .create(service.country("0.0.0.0"))
             .expectNext(CountryResponseWrapper())
@@ -33,7 +33,7 @@ class ReactiveGeoLiteServiceDbPathErrorTest {
     }
 
     @Test
-    fun `asn with correct path but wrong db`() {
+    fun `asn with correct path but wrong db should return empty wrapper and not throw an exception`() {
         StepVerifier
             .create(service.asn("0.0.0.0"))
             .expectNext(AsnResponseWrapper())

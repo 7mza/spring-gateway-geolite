@@ -115,9 +115,6 @@ class ReactiveGeoLiteGatewayFilterFactory(
                                 chain.filter(exchange)
                             },
                     )
-                }.onErrorResume {
-                    logger.error("ReactiveGeoLiteGatewayFilterFactory: {}", it.message)
-                    chain.filter(exchange)
                 }
         }
 }

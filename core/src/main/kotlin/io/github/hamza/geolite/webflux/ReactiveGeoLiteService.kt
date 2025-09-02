@@ -18,25 +18,20 @@ class ReactiveGeoLiteService(
 ) : IReactiveGeoLiteService {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    /* FIXME:
-     * defensive db loading on path existence
-     * return default dto instead of error for filter zip
-     * return default dto immediately if no DB
-     */
-
     private val cityDbReaderMono: Mono<DatabaseReader> =
         fileReader
             .readFileAsInputStream("classpath:${properties.db.city}")
             .map { DatabaseReader.Builder(it).withCache(CHMCache()).build() }
             .subscribeOn(Schedulers.boundedElastic())
-            .let { mono ->
+            .let {
                 if (properties.cached == true) {
-                    mono
-                        .onErrorResume { Mono.empty() }
-                        .cache()
+                    it.cache()
                 } else {
-                    mono
+                    it
                 }
+            }.onErrorResume {
+                logger.warn("cityDbReaderMono: {}", it.message)
+                Mono.empty()
             }
 
     private val countryDbReaderMono: Mono<DatabaseReader> =
@@ -44,14 +39,15 @@ class ReactiveGeoLiteService(
             .readFileAsInputStream("classpath:${properties.db.country}")
             .map { DatabaseReader.Builder(it).withCache(CHMCache()).build() }
             .subscribeOn(Schedulers.boundedElastic())
-            .let { mono ->
+            .let {
                 if (properties.cached == true) {
-                    mono
-                        .onErrorResume { Mono.empty() }
-                        .cache()
+                    it.cache()
                 } else {
-                    mono
+                    it
                 }
+            }.onErrorResume {
+                logger.warn("countryDbReaderMono: {}", it.message)
+                Mono.empty()
             }
 
     private val asnDbReaderMono: Mono<DatabaseReader> =
@@ -59,14 +55,15 @@ class ReactiveGeoLiteService(
             .readFileAsInputStream("classpath:${properties.db.asn}")
             .map { DatabaseReader.Builder(it).withCache(CHMCache()).build() }
             .subscribeOn(Schedulers.boundedElastic())
-            .let { mono ->
+            .let {
                 if (properties.cached == true) {
-                    mono
-                        .onErrorResume { Mono.empty() }
-                        .cache()
+                    it.cache()
                 } else {
-                    mono
+                    it
                 }
+            }.onErrorResume {
+                logger.warn("asnDbReaderMono: {}", it.message)
+                Mono.empty()
             }
 
     override fun city(ip: String): Mono<CityResponseWrapper> =
@@ -76,7 +73,8 @@ class ReactiveGeoLiteService(
                     .fromCallable {
                         CityResponseWrapper(reader.city(InetAddress.getByName(ip)))
                     }.subscribeOn(Schedulers.boundedElastic())
-            }.onErrorResume {
+            }.switchIfEmpty(Mono.just(CityResponseWrapper()))
+            .onErrorResume {
                 // Mono.empty on filters short-circuit the whole chain
                 logger.warn("city: {}", it.message)
                 Mono.just(CityResponseWrapper())
@@ -89,7 +87,8 @@ class ReactiveGeoLiteService(
                     .fromCallable {
                         CountryResponseWrapper(reader.country(InetAddress.getByName(ip)))
                     }.subscribeOn(Schedulers.boundedElastic())
-            }.onErrorResume {
+            }.switchIfEmpty(Mono.just(CountryResponseWrapper()))
+            .onErrorResume {
                 logger.warn("country: {}", it.message)
                 Mono.just(CountryResponseWrapper())
             }
@@ -101,7 +100,8 @@ class ReactiveGeoLiteService(
                     .fromCallable {
                         AsnResponseWrapper(reader.asn(InetAddress.getByName(ip)))
                     }.subscribeOn(Schedulers.boundedElastic())
-            }.onErrorResume {
+            }.switchIfEmpty(Mono.just(AsnResponseWrapper()))
+            .onErrorResume {
                 logger.warn("asn: {}", it.message)
                 Mono.just(AsnResponseWrapper())
             }

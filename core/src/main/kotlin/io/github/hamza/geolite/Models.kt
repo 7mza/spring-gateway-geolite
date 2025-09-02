@@ -55,12 +55,11 @@ data class GeoLiteData(
     private fun scoreHeaders(): Int {
         var score = 0
         val headers = additionalHeaders ?: emptyMap()
-        // FIXME: case sensitive
-        if (!headers.containsKey(HttpHeaders.USER_AGENT)) score += 1
-        // if (!headers.containsKey("accept-language")) score += 1
-        // if (!headers.containsKey("accept")) score += 1
-        // if (!headers.containsKey("referer")) score += 1
-        // if (!headers.containsKey("connection")) score += 1
+        if (!headers.containsKey(HttpHeaders.USER_AGENT.lowercase())) score += 1
+        // if (!headers.containsKey(HttpHeaders.ACCEPT_LANGUAGE.lowercase())) score += 1
+        // if (!headers.containsKey(HttpHeaders.ACCEPT.lowercase())) score += 1
+        // if (!headers.containsKey(HttpHeaders.REFERER.lowercase())) score += 1
+        // if (!headers.containsKey(HttpHeaders.CONNECTION.lowercase())) score += 1
         // if (!headers.containsKey("sec-fetch-site")) score += 1
         return score
     }

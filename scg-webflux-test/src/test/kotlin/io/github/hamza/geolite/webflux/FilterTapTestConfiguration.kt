@@ -161,7 +161,9 @@ class FilterTapTestConfiguration
                                         .isNotNull()
                                         .anyMatch { l -> l.contains("localhost") }
                                     assertThat(headers["webtestclient-request-id"]).isNotNull().contains("1")
-                                    assertThat(headers[HttpHeaders.ACCEPT.lowercase()]).isNotNull().contains(MediaType.TEXT_HTML_VALUE)
+                                    assertThat(headers[HttpHeaders.ACCEPT.lowercase()])
+                                        .isNotNull()
+                                        .contains(MediaType.TEXT_HTML_VALUE.lowercase())
                                     assertThat(headers["toto"]).isNotNull().contains("tata")
                                     assertThat(headers["titi"]).isNotNull().contains("a1", "a2")
 

@@ -1,5 +1,10 @@
 # spring-gateway-geolite
 
+## [version 1.0.2](https://central.sonatype.com/artifact/io.github.7mza/spring-gateway-geolite/1.0.1) - 2025-09-02
+
+- defensive db files loading
+- code cleaning
+
 ## [version 1.0.1](https://central.sonatype.com/artifact/io.github.7mza/spring-gateway-geolite/1.0.1) - 2025-09-01
 
 - reactor cache

@@ -1,6 +1,14 @@
 # spring-gateway-geolite
 
-## [version 1.0.2](https://central.sonatype.com/artifact/io.github.7mza/spring-gateway-geolite/1.0.1) - 2025-09-02
+## [version 1.0.3](https://central.sonatype.com/artifact/io.github.7mza/spring-gateway-geolite/1.0.3) - 2025-09-27
+
+Updeps:
+
+- jdk 21
+- spring boot 3.5.6
+- gradle 9.1.0
+
+## [version 1.0.2](https://central.sonatype.com/artifact/io.github.7mza/spring-gateway-geolite/1.0.2) - 2025-09-02
 
 - defensive db files loading
 - code cleaning

@@ -26,7 +26,8 @@ class FilterTapTestConfiguration
         private val baggageManager: BaggageManager,
         private val objectMapper: ObjectMapper,
         private val properties: GeoliteSharedConfiguration.GeoliteProperties,
-        @param:Value("\${wiremock.server.port}") private val port: Int,
+        @param:Value($$"${wiremock.server.port}") private val port: Int,
+        @param:Value($$"${test.header}") private val testHeader: String,
     ) {
         @Bean
         fun routes(builder: RouteLocatorBuilder): RouteLocator =
@@ -83,7 +84,7 @@ class FilterTapTestConfiguration
                                                         mapOf(
                                                             Pair(
                                                                 HttpHeaders.USER_AGENT.lowercase(),
-                                                                listOf("ReactorNetty/1.2.9"),
+                                                                listOf(testHeader),
                                                             ),
                                                         ),
                                                 ),
@@ -156,7 +157,7 @@ class FilterTapTestConfiguration
                                         .contains("gzip")
                                     assertThat(headers[HttpHeaders.USER_AGENT.lowercase()])
                                         .isNotNull()
-                                        .contains("ReactorNetty/1.2.9")
+                                        .contains(testHeader)
                                     assertThat(headers[HttpHeaders.HOST.lowercase()])
                                         .isNotNull()
                                         .anyMatch { l -> l.contains("localhost") }

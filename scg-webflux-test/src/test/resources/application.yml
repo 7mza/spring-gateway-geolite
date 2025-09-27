@@ -70,6 +70,8 @@ spring:
   output:
     ansi:
       enabled: ALWAYS
+test:
+  header: ReactorNetty/1.2.10
 wiremock:
   server:
     port: 0

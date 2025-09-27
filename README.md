@@ -32,7 +32,9 @@ SCG auto configured filter for GeoLite2 integration and bot detection
     "prefixLength": 16
   },
   "additionalHeaders": {
-    "user-agent": ["ReactorNetty/1.2.9"]
+    "user-agent": [
+      "..."
+    ]
   },
   "botScore": 10,
   "isBot": false
@@ -168,7 +170,7 @@ OOM**
 
 [sdkman](https://sdkman.io)
 
-- jdk 17 for broader support
+- jdk 21 for broader support
 
 ```shell
 sdk env install

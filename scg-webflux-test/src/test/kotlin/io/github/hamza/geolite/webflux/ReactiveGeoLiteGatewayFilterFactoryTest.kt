@@ -22,6 +22,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
@@ -86,6 +87,9 @@ class ReactiveGeoLiteGatewayFilterFactoryTest {
 
     @MockitoBean("GeoLiteForwardedResolver")
     private lateinit var resolver: XForwardedRemoteAddressResolver
+
+    @Value($$"${test.header}")
+    private lateinit var testHeader: String
 
     @AfterEach
     fun afterEach() {
@@ -156,7 +160,7 @@ class ReactiveGeoLiteGatewayFilterFactoryTest {
                                     mapOf(
                                         Pair(
                                             HttpHeaders.USER_AGENT.lowercase(),
-                                            listOf("ReactorNetty/1.2.9"),
+                                            listOf(testHeader),
                                         ),
                                     ),
                             ),

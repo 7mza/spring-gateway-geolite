@@ -1,5 +1,12 @@
 # spring-gateway-geolite
 
+## [version 1.0.4](https://central.sonatype.com/artifact/io.github.7mza/spring-gateway-geolite/1.0.4) - 2025-11-01
+
+Updeps:
+
+- spring boot 3.5.7
+- gradle 9.2.0
+
 ## [version 1.0.3](https://central.sonatype.com/artifact/io.github.7mza/spring-gateway-geolite/1.0.3) - 2025-09-27
 
 Updeps:

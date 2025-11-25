@@ -7,7 +7,7 @@ group = "io.github.7mza.geolite.tests"
 version = "0.0.1-SNAPSHOT"
 
 val blockhoundVersion = "1.0.15.RELEASE"
-val geoip2Version = "4.4.0"
+val geoip2Version = "5.0.0"
 val springCloudVersion = "2025.0.0"
 
 dependencies {

@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+import org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.owasp.dependencycheck.gradle.extension.DependencyCheckExtension
 import org.owasp.dependencycheck.reporting.ReportGenerator.Format
@@ -5,11 +7,11 @@ import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 plugins {
     kotlin("jvm") version "2.2.21"
     kotlin("plugin.spring") version "2.2.21" apply false
-    id("org.springframework.boot") version "3.5.7" apply false
+    id("org.springframework.boot") version "3.5.8" apply false
     id("io.spring.dependency-management") version "1.1.7"
     id("com.github.ben-manes.versions") version "0.53.0"
-    id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
-    id("org.owasp.dependencycheck") version "12.1.8"
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    id("org.owasp.dependencycheck") version "12.1.9"
     jacoco
     id("java-library")
     id("org.jreleaser") version "1.21.0" apply false
@@ -87,6 +89,14 @@ subprojects {
             excludes = listOf("jdk.internal.*")
             isIncludeNoLocationClasses = true
         }
+        testLogging {
+            events = setOf(FAILED)
+            exceptionFormat = FULL
+            showCauses = true
+            showExceptions = true
+            showStackTraces = true
+            showStandardStreams = false
+        }
     }
 
     tasks.withType<Test>().configureEach {
@@ -122,7 +132,7 @@ subprojects {
         coloredOutput.set(true)
         debug.set(true)
         verbose.set(true)
-        version.set("1.7.1")
+        version.set("1.8.0")
     }
 
     configure<DependencyCheckExtension> {

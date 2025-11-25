@@ -90,25 +90,25 @@ data class AsnData(
 
 fun CityResponse.toCityDto(): CityData =
     CityData(
-        name = this.city.name,
-        isoCode = this.mostSpecificSubdivision.isoCode,
-        latitude = this.location.latitude,
-        longitude = this.location.longitude,
+        name = this.city().name(),
+        isoCode = this.mostSpecificSubdivision().isoCode(),
+        latitude = this.location().latitude(),
+        longitude = this.location().longitude(),
     )
 
 fun CityResponse.toCountryDto(): CountryData =
     CountryData(
-        name = this.country.name,
-        isoCode = this.country.isoCode,
+        name = this.country().name(),
+        isoCode = this.country().isoCode(),
     )
 
 fun AsnResponse.toDto(): AsnData =
     AsnData(
-        autonomousSystemOrganization = this.autonomousSystemOrganization,
-        autonomousSystemNumber = this.autonomousSystemNumber,
-        ipAddress = this.ipAddress,
-        hostAddress = this.network.networkAddress.hostAddress,
-        prefixLength = this.network.prefixLength,
+        autonomousSystemOrganization = this.autonomousSystemOrganization(),
+        autonomousSystemNumber = this.autonomousSystemNumber(),
+        ipAddress = this.ipAddress().hostAddress,
+        hostAddress = this.network().networkAddress().hostAddress,
+        prefixLength = this.network().prefixLength,
     )
 
 // just to avoid constructing CountryResponse in error flows

@@ -63,7 +63,9 @@ class ReactiveGeoLiteGatewayFilterFactory(
                             }
                     }
 
-                    else -> emptyMap()
+                    else -> {
+                        emptyMap()
+                    }
                 }
 
             Mono

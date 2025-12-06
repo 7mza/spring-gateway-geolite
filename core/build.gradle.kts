@@ -9,25 +9,21 @@ plugins {
 
 val artifact = "spring-gateway-geolite"
 group = "io.github.7mza"
-version = "1.0.5"
+version = "2.0.0"
 
 val blockhoundVersion = "1.0.15.RELEASE"
-val geoip2Version = "5.0.0"
-val springCloudVersion = "2025.0.0"
+val geoip2Version = "5.0.1"
+val springCloudVersion = "2025.1.0"
 
 dependencies {
     implementation("com.maxmind.geoip2:geoip2:$geoip2Version")
 
-    compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
     compileOnly("io.micrometer:micrometer-tracing-bridge-otel")
-    compileOnly("io.projectreactor.kotlin:reactor-kotlin-extensions")
-    compileOnly("org.jetbrains.kotlin:kotlin-reflect")
-    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    compileOnly("org.springframework.boot:spring-boot-starter-actuator")
     compileOnly("org.springframework.cloud:spring-cloud-starter-gateway-server-webflux")
-    compileOnly("org.springframework.cloud:spring-cloud-starter-gateway-server-webmvc")
+    compileOnly("tools.jackson.module:jackson-module-kotlin")
 
     testImplementation("io.projectreactor.tools:blockhound-junit-platform:$blockhoundVersion")
+    testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
 }
 
 dependencyManagement {

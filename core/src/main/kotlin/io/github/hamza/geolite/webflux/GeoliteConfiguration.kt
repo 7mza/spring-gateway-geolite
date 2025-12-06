@@ -1,6 +1,5 @@
 package io.github.hamza.geolite.webflux
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.hamza.geolite.GeoliteSharedConfiguration.GeoliteProperties
 import io.micrometer.tracing.Tracer
 import org.springframework.beans.factory.annotation.Qualifier
@@ -11,6 +10,7 @@ import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddr
 import org.springframework.context.annotation.Bean
 import org.springframework.core.env.Environment
 import org.springframework.core.io.ResourceLoader
+import tools.jackson.databind.ObjectMapper
 
 @AutoConfiguration
 @ConditionalOnClass(

@@ -1,5 +1,14 @@
 # spring-gateway-geolite
 
+## [version 2.0.0](https://central.sonatype.com/artifact/io.github.7mza/spring-gateway-geolite/2.0.0) - 2025-12-06
+
+Updeps:
+
+- kotlin 2.3.0-RC2
+- spring boot 4.0.0
+- spring cloud 2025.1.0
+- geoip2 5.0.1
+
 ## [version 1.0.5](https://central.sonatype.com/artifact/io.github.7mza/spring-gateway-geolite/1.0.5) - 2025-11-25
 
 Updeps:

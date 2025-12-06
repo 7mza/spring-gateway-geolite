@@ -1,10 +1,10 @@
 package io.github.hamza.geolite.webflux
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.hamza.geolite.Commons
 import io.github.hamza.geolite.Commons.Companion.logAtLevel
 import io.github.hamza.geolite.GeoLiteData
 import io.github.hamza.geolite.GeoliteSharedConfiguration.GeoliteProperties
+import io.github.hamza.geolite.normalize
 import io.github.hamza.geolite.toCityDto
 import io.github.hamza.geolite.toCountryDto
 import io.github.hamza.geolite.toDto
@@ -16,6 +16,7 @@ import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddr
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import reactor.core.publisher.Mono
+import tools.jackson.databind.ObjectMapper
 
 class ReactiveGeoLiteGatewayFilterFactory(
     private val geoLiteService: IReactiveGeoLiteService,
@@ -51,12 +52,14 @@ class ReactiveGeoLiteGatewayFilterFactory(
                 when {
                     wantedHeaders?.contains("*") == true -> {
                         headers
+                            .normalize()
                             .mapKeys { it.key.lowercase() }
                             .filterValues { it.any { v -> v.isNotBlank() } }
                     }
 
                     wantedHeaders != null -> {
                         headers
+                            .normalize()
                             .mapKeys { it.key.lowercase() }
                             .filter { (key, values) ->
                                 key in wantedHeaders && values.any { v -> v.isNotBlank() }

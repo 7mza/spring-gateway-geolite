@@ -38,8 +38,11 @@ class ReactiveGeoLiteServiceTest {
                 assertThat(it.asnResponse?.autonomousSystemNumber()).isEqualTo(217)
                 assertThat(it.asnResponse?.autonomousSystemOrganization()).isEqualTo("UMN-SYSTEM")
                 assertThat(it.asnResponse?.ipAddress()?.hostAddress).isEqualTo("128.101.101.101")
-                assertThat("${it.asnResponse?.network()?.networkAddress()?.hostAddress}/${it.asnResponse?.network()?.prefixLength}")
-                    .isEqualTo("128.101.0.0/16")
+                assertThat(
+                    "${
+                        it.asnResponse?.network()?.networkAddress()?.hostAddress
+                    }/${it.asnResponse?.network()?.prefixLength}",
+                ).isEqualTo("128.101.0.0/16")
             }.verifyComplete()
     }
 

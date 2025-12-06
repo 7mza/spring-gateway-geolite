@@ -1,6 +1,5 @@
 package io.github.hamza.geolite.webflux
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.hamza.geolite.Commons
 import io.github.hamza.geolite.GeoLiteData
 import io.github.hamza.geolite.GeoliteSharedConfiguration
@@ -17,6 +16,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import tools.jackson.databind.ObjectMapper
 
 @TestConfiguration
 class FilterTapTestConfiguration
@@ -40,7 +40,7 @@ class FilterTapTestConfiguration
                             f
                                 .filter(geoLite.apply(ReactiveGeoLiteGatewayFilterFactory.Companion.Config()))
                                 .filter { exchange, chain ->
-                                    val baggage = baggageManager.getBaggage(properties.baggage)?.get()
+                                    val baggage = baggageManager.getBaggage(properties.baggage).get()
                                     assertThat(baggage).isNotNull
 
                                     val parsed = Commons.parseJson<GeoLiteData>(baggage!!, objectMapper)
@@ -69,7 +69,7 @@ class FilterTapTestConfiguration
                                         ),
                                     ),
                                 ).filter { exchange, chain ->
-                                    val baggage = baggageManager.getBaggage(properties.baggage)?.get()
+                                    val baggage = baggageManager.getBaggage(properties.baggage).get()
                                     assertThat(baggage).isNotNull
 
                                     val parsed = Commons.parseJson<GeoLiteData>(baggage!!, objectMapper)
@@ -113,7 +113,7 @@ class FilterTapTestConfiguration
                                         ),
                                     ),
                                 ).filter { exchange, _ ->
-                                    val baggage = baggageManager.getBaggage(properties.baggage)?.get()
+                                    val baggage = baggageManager.getBaggage(properties.baggage).get()
                                     assertThat(baggage).isNotNull
 
                                     val parsed = Commons.parseJson<GeoLiteData>(baggage!!, objectMapper)
@@ -144,7 +144,7 @@ class FilterTapTestConfiguration
                                         ),
                                     ),
                                 ).filter { exchange, chain ->
-                                    val baggage = baggageManager.getBaggage(properties.baggage)?.get()
+                                    val baggage = baggageManager.getBaggage(properties.baggage).get()
                                     assertThat(baggage).isNotNull
 
                                     val parsed = Commons.parseJson<GeoLiteData>(baggage!!, objectMapper)

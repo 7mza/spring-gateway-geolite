@@ -5,9 +5,9 @@ import org.owasp.dependencycheck.gradle.extension.DependencyCheckExtension
 import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21" apply false
-    id("org.springframework.boot") version "3.5.8" apply false
+    kotlin("jvm") version "2.3.0-RC2"
+    kotlin("plugin.spring") version "2.3.0-RC2" apply false
+    id("org.springframework.boot") version "4.0.0" apply false
     id("io.spring.dependency-management") version "1.1.7"
     id("com.github.ben-manes.versions") version "0.53.0"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
@@ -41,11 +41,8 @@ subprojects {
     dependencies {
         annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-        testImplementation("io.projectreactor:reactor-test")
         testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-        testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
         testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoKotlinVersion")
-        testImplementation("org.springframework.boot:spring-boot-starter-test")
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
         mockitoAgent("org.mockito:mockito-core:$mockitoCoreVersion") { isTransitive = false }
@@ -65,7 +62,7 @@ subprojects {
 
     kotlin {
         compilerOptions {
-            freeCompilerArgs.addAll("-Xjsr305=strict")
+            freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
         }
     }
 

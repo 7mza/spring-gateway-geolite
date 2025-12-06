@@ -1,6 +1,5 @@
 package io.github.hamza.geolite.webflux
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
@@ -23,15 +22,18 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability
+import org.springframework.boot.micrometer.tracing.test.autoconfigure.AutoConfigureTracing
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.server.ServerWebExchange
+import org.wiremock.spring.ConfigureWireMock
+import org.wiremock.spring.EnableWireMock
+import tools.jackson.databind.ObjectMapper
 import java.net.InetAddress
 import java.net.InetSocketAddress
 
@@ -73,8 +75,9 @@ fun GeoLiteData.withoutCoordinates(): GeoLiteData =
     )
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWireMock(port = 0)
-@AutoConfigureObservability
+@AutoConfigureWebTestClient
+@EnableWireMock(value = [ConfigureWireMock(port = 0)])
+@AutoConfigureTracing
 class ReactiveGeoLiteGatewayFilterFactoryTest {
     @Autowired
     private lateinit var webTestClient: WebTestClient

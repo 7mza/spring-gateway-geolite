@@ -1,26 +1,31 @@
 package io.github.hamza.geolite
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.micrometer.tracing.Tracer
 import org.slf4j.Logger
+import org.springframework.http.HttpHeaders
 import reactor.core.publisher.Mono
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.node.ObjectNode
+
+fun HttpHeaders.normalize(): Map<String, List<String>> =
+    this.headerNames().associateWith { headerName ->
+        this.getValuesAsList(headerName)
+    }
 
 class Commons {
     companion object {
         inline fun <reified T> parseJson(
             json: String,
             objectMapper: ObjectMapper,
-        ): T = objectMapper.readValue(json.trimIndent())
+        ): T = objectMapper.readValue(json.trimIndent(), T::class.java)
 
         inline fun <reified T> writeJson(
             t: T,
             objectMapper: ObjectMapper,
         ): String = objectMapper.writeValueAsString(t)
 
-        fun <T> withDynamicBaggage(
+        fun <T : Any> withDynamicBaggage(
             tracer: Tracer,
             key: String,
             value: String,
@@ -53,7 +58,7 @@ class Commons {
             mapper: ObjectMapper,
         ): JsonNode? =
             try {
-                val node = mapper.valueToTree<ObjectNode>(data)
+                val node = mapper.valueToTree<JsonNode>(data)
                 properties.exclude.forEach { path ->
                     removeJsonPath(node, path.split("."))
                 }

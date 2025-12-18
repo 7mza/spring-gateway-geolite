@@ -5,8 +5,8 @@ import org.owasp.dependencycheck.gradle.extension.DependencyCheckExtension
 import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
 plugins {
-    kotlin("jvm") version "2.3.0-RC2"
-    kotlin("plugin.spring") version "2.3.0-RC2" apply false
+    kotlin("jvm") version "2.3.0"
+    kotlin("plugin.spring") version "2.3.0" apply false
     id("org.springframework.boot") version "4.0.0" apply false
     id("io.spring.dependency-management") version "1.1.7"
     id("com.github.ben-manes.versions") version "0.53.0"
@@ -33,7 +33,7 @@ allprojects {
 subprojects {
     apply(plugin = "jacoco")
 
-    val mockitoCoreVersion = "5.20.0"
+    val mockitoCoreVersion = "5.21.0"
     val mockitoKotlinVersion = "6.1.0"
 
     val mockitoAgent = configurations.create("mockitoAgent")

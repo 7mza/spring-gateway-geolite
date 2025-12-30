@@ -67,7 +67,8 @@ autoconfiguration conditional on
 micrometer is needed to [pass baggage to
 MDC](https://docs.spring.io/spring-boot/reference/actuator/tracing.html#actuator.micrometer-tracing.baggage)
 
-download latest GeoLite dbs from [P3TERX/GeoLite.mmdb](https://github.com/P3TERX/GeoLite.mmdb)
+download latest GeoLite dbs from [P3TERX/GeoLite.mmdb](https://github.com/P3TERX/GeoLite.mmdb) and place in a spring
+ResourceLoader relative path (src/main/resources/...) inside your SCG
 
 ### configure on SCG
 
@@ -175,6 +176,11 @@ OOM**
 
 ```shell
 sdk env install
+```
+
+```shell
+# download latest DBs and place them in ./scg-webflux-test/src/main/resources/geolite/
+./download_geolite.sh
 ```
 
 ```yaml

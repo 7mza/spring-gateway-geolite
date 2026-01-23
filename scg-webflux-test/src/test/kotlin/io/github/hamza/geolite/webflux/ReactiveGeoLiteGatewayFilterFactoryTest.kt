@@ -57,7 +57,7 @@ val geoLiteData =
         asn =
             AsnData(
                 autonomousSystemNumber = 217,
-                autonomousSystemOrganization = "UMN-SYSTEM",
+                autonomousSystemOrganization = "University of Minnesota",
                 ipAddress = "128.101.101.101",
                 hostAddress = "128.101.0.0",
                 prefixLength = 16,

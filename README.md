@@ -26,7 +26,7 @@ SCG auto configured filter for GeoLite2 integration and bot detection
   },
   "asn": {
     "autonomousSystemNumber": 217,
-    "autonomousSystemOrganization": "UMN-SYSTEM",
+    "autonomousSystemOrganization": "University of Minnesota",
     "ipAddress": "128.101.101.101",
     "hostAddress": "128.101.0.0",
     "prefixLength": 16

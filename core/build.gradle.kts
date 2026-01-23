@@ -9,9 +9,9 @@ plugins {
 
 val artifact = "spring-gateway-geolite"
 group = "io.github.7mza"
-version = "2.0.2"
+version = "2.0.3"
 
-val blockhoundVersion = "1.0.15.RELEASE"
+val blockhoundVersion = "1.0.16.RELEASE"
 val geoip2Version = "5.0.2"
 val springCloudVersion = "2025.1.0"
 

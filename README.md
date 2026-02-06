@@ -160,7 +160,7 @@ OOM**
 
 ### support
 
-- v. 2.x: spring boot 4.x / spring cloud 2025.1.0
+- v. 2.x: spring boot 4.x / spring cloud 2025.1.+
 - v. 1.x: spring boot 3.x / spring cloud 2025.0.0
 
 ### archi

@@ -7,9 +7,9 @@ group = "io.github.7mza.geolite.tests"
 version = "0.0.1-SNAPSHOT"
 
 val blockhoundVersion = "1.0.16.RELEASE"
-val geoip2Version = "5.0.0"
-val springCloudVersion = "2025.1.0"
-val wiremockSpringBootVersion = "4.0.9"
+val geoip2Version = "5.0.2"
+val springCloudVersion = "2025.1.1"
+val wiremockSpringBootVersion = "4.1.0"
 
 dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-gateway-server-webflux")

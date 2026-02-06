@@ -5,8 +5,8 @@ import org.owasp.dependencycheck.gradle.extension.DependencyCheckExtension
 import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
 plugins {
-    kotlin("jvm") version "2.3.0"
-    kotlin("plugin.spring") version "2.3.0" apply false
+    kotlin("jvm") version "2.3.10"
+    kotlin("plugin.spring") version "2.3.10" apply false
     id("org.springframework.boot") version "4.0.2" apply false
     id("io.spring.dependency-management") version "1.1.7"
     id("com.github.ben-manes.versions") version "0.53.0"
@@ -34,7 +34,7 @@ subprojects {
     apply(plugin = "jacoco")
 
     val mockitoCoreVersion = "5.21.0"
-    val mockitoKotlinVersion = "6.2.2"
+    val mockitoKotlinVersion = "6.2.3"
 
     val mockitoAgent = configurations.create("mockitoAgent")
 
@@ -71,13 +71,16 @@ subprojects {
         options.isIncremental = true
     }
 
-    tasks.withType<Test> {
+    tasks.withType<Test>().configureEach {
         useJUnitPlatform()
         jvmArgs(
             "--enable-native-access=ALL-UNNAMED",
             "-javaagent:${mockitoAgent.asPath}",
             "-XX:+EnableDynamicAgentLoading",
         )
+        // maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(2)
+        maxParallelForks = 2
+        // forkEvery = 100
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_13)) {
             jvmArgs("-XX:+AllowRedefinitionToAddDeleteMethods")
         }
@@ -94,12 +97,6 @@ subprojects {
             showStackTraces = true
             showStandardStreams = false
         }
-    }
-
-    tasks.withType<Test>().configureEach {
-        // maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(2)
-        maxParallelForks = 2
-        // forkEvery = 100
         reports {
             html.required = false
             junitXml.required = false

@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "format": "npx prettier **/*.{json,md,yaml,yml} --write",
+    "clean": "npm prune && npm cache verify",
+    "clear": "npm run clean",
+    "ncu": "npx ncu"
+  },
+  "devDependencies": {
+    "npm-check-updates": "^22.2.0",
+    "prettier": "^3.8.3"
+  }
+}

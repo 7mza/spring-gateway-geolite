@@ -1,6 +1,6 @@
 # Spring Cloud Gateway GeoLite2
 
-SCG auto configured filter for GeoLite2 integration and bot detection
+SCG autoconfigured filter for GeoLite2 integration and bot detection
 
 - automatically transforms X-Forwarded-For header to GeoIP2 data and add it to MDC/tracing baggage
   using [MaxMind's local GeoLite2 dbs](https://github.com/P3TERX/GeoLite.mmdb)
@@ -32,9 +32,7 @@ SCG auto configured filter for GeoLite2 integration and bot detection
     "prefixLength": 16
   },
   "additionalHeaders": {
-    "user-agent": [
-      "..."
-    ]
+    "user-agent": ["..."]
   },
   "botScore": 10,
   "isBot": false
@@ -84,8 +82,8 @@ geolite:
     city: geolite/GeoLite2-City.mmdb
     country: geolite/GeoLite2-Country.mmdb
   exclude: [] # fields to exclude from MDC
-#    - asn.ipAddress # or
-#    - asn.* # or
+  #    - asn.ipAddress # or
+  #    - asn.* # or
   maxTrustedIndex: 1
 management:
   tracing:
@@ -183,11 +181,11 @@ sdk env install
 ./download_geolite.sh
 ```
 
-```yaml
+```shell
 ./gradlew clean ktlintFormat ktlintCheck build
 ```
 
-```yaml
+```shell
 ./gradlew publishToMavenLocal
 ```
 
@@ -203,6 +201,28 @@ dependencies {
     // ...
     implementation("io.github.7mza:spring-gateway-geolite:${local_build_version}")
 }
+```
+
+### Publishing to mvn central
+
+[jReleaser](https://jreleaser.org/guide/latest/examples/maven/maven-central.html#_gradle)
+
+```shell
+# prepare env
+sdk env install
+./gradlew clean ktlintFormat ktlintCheck build --no-build-cache
+
+# check confs
+./gradlew jreleaserConfig
+
+# sign with jReleaser
+./gradlew jreleaserSign
+
+# prepare artifacts
+./gradlew publish
+
+# publish to mvn central
+./gradlew jreleaserDeploy
 ```
 
 ### TODO

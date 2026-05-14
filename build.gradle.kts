@@ -11,10 +11,10 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("com.github.ben-manes.versions") version "0.54.0"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
-    id("org.owasp.dependencycheck") version "12.2.1"
+    id("org.owasp.dependencycheck") version "12.2.2"
     jacoco
     id("java-library")
-    id("org.jreleaser") version "1.23.0" apply false
+    id("org.jreleaser") version "1.24.0" apply false
 }
 
 allprojects {
@@ -34,7 +34,7 @@ subprojects {
     apply(plugin = "jacoco")
 
     val mockitoCoreVersion = "5.23.0"
-    val mockitoKotlinVersion = "6.2.3"
+    val mockitoKotlinVersion = "6.3.0"
 
     val mockitoAgent = configurations.create("mockitoAgent")
 
@@ -66,58 +66,60 @@ subprojects {
         }
     }
 
-    tasks.withType<JavaCompile>().configureEach {
-        options.isFork = true
-        options.isIncremental = true
-    }
+    tasks {
+        withType<JavaCompile>().configureEach {
+            options.isFork = true
+            options.isIncremental = true
+        }
 
-    tasks.withType<Test>().configureEach {
-        useJUnitPlatform()
-        jvmArgs(
-            "--enable-native-access=ALL-UNNAMED",
-            "-javaagent:${mockitoAgent.asPath}",
-            "-XX:+EnableDynamicAgentLoading",
-        )
-        // maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(2)
-        maxParallelForks = 2
-        // forkEvery = 100
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_13)) {
-            jvmArgs("-XX:+AllowRedefinitionToAddDeleteMethods")
+        withType<Test>().configureEach {
+            useJUnitPlatform()
+            jvmArgs(
+                "--enable-native-access=ALL-UNNAMED",
+                "-javaagent:${mockitoAgent.asPath}",
+                "-XX:+EnableDynamicAgentLoading",
+            )
+            // maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(2)
+            maxParallelForks = 2
+            // forkEvery = 100
+            if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_13)) {
+                jvmArgs("-XX:+AllowRedefinitionToAddDeleteMethods")
+            }
+            finalizedBy(jacocoTestReport)
+            configure<JacocoTaskExtension> {
+                excludes = listOf("jdk.internal.*")
+                isIncludeNoLocationClasses = true
+            }
+            testLogging {
+                events = setOf(FAILED)
+                exceptionFormat = FULL
+                showCauses = true
+                showExceptions = true
+                showStackTraces = true
+                showStandardStreams = false
+            }
+            reports {
+                html.required = false
+                junitXml.required = false
+            }
         }
-        finalizedBy(tasks.jacocoTestReport)
-        configure<JacocoTaskExtension> {
-            excludes = listOf("jdk.internal.*")
-            isIncludeNoLocationClasses = true
-        }
-        testLogging {
-            events = setOf(FAILED)
-            exceptionFormat = FULL
-            showCauses = true
-            showExceptions = true
-            showStackTraces = true
-            showStandardStreams = false
-        }
-        reports {
-            html.required = false
-            junitXml.required = false
-        }
-    }
 
-    tasks.jacocoTestReport {
-        dependsOn(tasks.test)
-        classDirectories.setFrom(
-            files(
-                classDirectories.files.map {
-                    fileTree(it) {
-                        exclude("**/ApplicationKt.class")
-                    }
-                },
-            ),
-        )
-        reports {
-            csv.required = false
-            html.outputLocation = layout.buildDirectory.dir("jacocoHtml")
-            xml.required = false
+        jacocoTestReport {
+            dependsOn(test)
+            classDirectories.setFrom(
+                files(
+                    classDirectories.files.map {
+                        fileTree(it) {
+                            exclude("**/ApplicationKt.class")
+                        }
+                    },
+                ),
+            )
+            reports {
+                csv.required = false
+                html.outputLocation = layout.buildDirectory.dir("jacocoHtml")
+                xml.required = false
+            }
         }
     }
 

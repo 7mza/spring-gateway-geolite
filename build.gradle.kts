@@ -5,24 +5,24 @@ import org.owasp.dependencycheck.gradle.extension.DependencyCheckExtension
 import org.owasp.dependencycheck.reporting.ReportGenerator.Format
 
 plugins {
-    kotlin("jvm") version "2.3.21"
-    kotlin("plugin.spring") version "2.3.21" apply false
-    id("org.springframework.boot") version "4.0.6" apply false
+    kotlin("jvm") version "2.4.10"
+    kotlin("plugin.spring") version "2.4.10" apply false
+    id("org.springframework.boot") version "4.1.0" apply false
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.github.ben-manes.versions") version "0.54.0"
+    id("io.github.ben-manes.versions") version "0.56.0"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("org.owasp.dependencycheck") version "12.2.2"
     jacoco
     id("java-library")
-    id("org.jreleaser") version "1.24.0" apply false
+    id("org.jreleaser") version "1.25.0" apply false
 }
 
 allprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "io.spring.dependency-management")
-    apply(plugin = "com.github.ben-manes.versions")
-    apply(plugin = "org.jlleitschuh.gradle.ktlint")
-    apply(plugin = "org.owasp.dependencycheck")
+    plugins.apply("org.jetbrains.kotlin.jvm")
+    plugins.apply("io.spring.dependency-management")
+    plugins.apply("io.github.ben-manes.versions")
+    plugins.apply("org.jlleitschuh.gradle.ktlint")
+    plugins.apply("org.owasp.dependencycheck")
 
     repositories {
         mavenCentral()
@@ -31,7 +31,7 @@ allprojects {
 }
 
 subprojects {
-    apply(plugin = "jacoco")
+    plugins.apply("jacoco")
 
     val mockitoCoreVersion = "5.23.0"
     val mockitoKotlinVersion = "6.3.0"
@@ -39,8 +39,6 @@ subprojects {
     val mockitoAgent = configurations.create("mockitoAgent")
 
     dependencies {
-        annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-
         testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
         testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoKotlinVersion")
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -48,40 +46,22 @@ subprojects {
         mockitoAgent("org.mockito:mockito-core:$mockitoCoreVersion") { isTransitive = false }
     }
 
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
-        }
-    }
+    java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
 
-    configurations {
-        compileOnly {
-            extendsFrom(configurations.annotationProcessor.get())
-        }
-    }
-
-    kotlin {
-        compilerOptions {
-            freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
-        }
-    }
+    kotlin { compilerOptions { freeCompilerArgs.addAll("-Xjsr305=strict") } }
 
     tasks {
         withType<JavaCompile>().configureEach {
+            options.encoding = Charsets.UTF_8.name()
             options.isFork = true
-            options.isIncremental = true
         }
 
         withType<Test>().configureEach {
             useJUnitPlatform()
-            jvmArgs(
-                "--enable-native-access=ALL-UNNAMED",
-                "-javaagent:${mockitoAgent.asPath}",
-                "-XX:+EnableDynamicAgentLoading",
-            )
-            // maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(2)
-            maxParallelForks = 2
-            // forkEvery = 100
+            jvmArgumentProviders += CommandLineArgumentProvider { listOf("-javaagent:${mockitoAgent.asPath}") }
+            maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+            forkEvery = 0
+            jvmArgs("-XX:+EnableDynamicAgentLoading")
             if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_13)) {
                 jvmArgs("-XX:+AllowRedefinitionToAddDeleteMethods")
             }
@@ -107,16 +87,10 @@ subprojects {
         jacocoTestReport {
             dependsOn(test)
             classDirectories.setFrom(
-                files(
-                    classDirectories.files.map {
-                        fileTree(it) {
-                            exclude("**/ApplicationKt.class")
-                        }
-                    },
-                ),
+                classDirectories.files.map { fileTree(it) { exclude("**/ApplicationKt.class") } },
             )
             reports {
-                csv.required = false
+                csv.required = true
                 html.outputLocation = layout.buildDirectory.dir("jacocoHtml")
                 xml.required = false
             }
@@ -131,14 +105,7 @@ subprojects {
         version.set("1.8.0")
     }
 
-    configure<DependencyCheckExtension> {
-        format = Format.HTML.toString()
-    }
+    configure<DependencyCheckExtension> { format = Format.HTML.toString() }
 }
 
-allprojects {
-    // https://nvd.nist.gov/developers/request-an-api-key
-    dependencyCheck {
-        nvd.apiKey = System.getenv("NVD_APIKEY") ?: ""
-    }
-}
+allprojects { dependencyCheck { nvd.apiKey = System.getenv("NVD_APIKEY") ?: "" } }

@@ -30,6 +30,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.server.ServerWebExchange
 import org.wiremock.spring.ConfigureWireMock
 import org.wiremock.spring.EnableWireMock
@@ -133,7 +134,7 @@ class ReactiveGeoLiteGatewayFilterFactoryTest {
                 .isOk
                 .expectHeader()
                 .contentTypeCompatibleWith(MediaType.TEXT_HTML)
-                .expectBody(String::class.java)
+                .expectBody<String>()
                 .returnResult()
                 .responseBody
 
@@ -187,7 +188,7 @@ class ReactiveGeoLiteGatewayFilterFactoryTest {
                 .isOk
                 .expectHeader()
                 .contentTypeCompatibleWith(MediaType.TEXT_HTML)
-                .expectBody(String::class.java)
+                .expectBody<String>()
                 .returnResult()
                 .responseBody
 

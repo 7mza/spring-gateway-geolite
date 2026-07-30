@@ -6,10 +6,10 @@ plugins {
 group = "io.github.7mza.geolite.tests"
 version = "0.0.1-SNAPSHOT"
 
-val blockhoundVersion = "1.0.16.RELEASE"
-val geoip2Version = "5.1.0"
-val springCloudVersion = "2025.1.1"
-val wiremockSpringBootVersion = "4.2.1"
+private val blockhoundVersion = "1.0.17.RELEASE"
+private val geoip2Version = "5.2.0"
+private val springCloudVersion = "2025.1.2"
+private val wiremockSpringBootVersion = "4.2.2"
 
 dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-gateway-server-webflux")
@@ -29,10 +29,7 @@ dependencyManagement {
     }
 }
 
-tasks.jar {
-    enabled = false
-}
-
-tasks.bootJar {
-    enabled = false
+tasks {
+    jar { enabled = false }
+    bootJar { enabled = false }
 }

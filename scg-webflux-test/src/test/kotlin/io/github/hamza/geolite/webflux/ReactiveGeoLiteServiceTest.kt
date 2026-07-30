@@ -34,7 +34,6 @@ class ReactiveGeoLiteServiceTest {
         StepVerifier
             .create(service.asn("128.101.101.101"))
             .assertNext {
-                println(it)
                 assertThat(it.asnResponse?.autonomousSystemNumber()).isEqualTo(217)
                 assertThat(it.asnResponse?.autonomousSystemOrganization()).isEqualTo("University of Minnesota")
                 assertThat(it.asnResponse?.ipAddress()?.hostAddress).isEqualTo("128.101.101.101")

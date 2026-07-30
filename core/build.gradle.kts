@@ -7,13 +7,13 @@ plugins {
     id("org.jreleaser")
 }
 
-val artifact = "spring-gateway-geolite"
+private val artifact = "spring-gateway-geolite"
 group = "io.github.7mza"
-version = "2.0.7"
+version = "2.0.8"
 
-val blockhoundVersion = "1.0.16.RELEASE"
-val geoip2Version = "5.1.0"
-val springCloudVersion = "2025.1.1"
+private val blockhoundVersion = "1.0.17.RELEASE"
+private val geoip2Version = "5.2.0"
+private val springCloudVersion = "2025.1.2"
 
 dependencies {
     implementation("com.maxmind.geoip2:geoip2:$geoip2Version")
@@ -32,12 +32,12 @@ dependencyManagement {
     }
 }
 
-tasks.withType<Jar>().configureEach {
-    archiveBaseName.set(artifact)
-}
-
-tasks.bootJar {
-    enabled = false
+tasks {
+    withType<Jar>().configureEach { archiveBaseName.set(artifact) }
+    bootJar { enabled = false }
+    matching { it.name.startsWith("publish", ignoreCase = true) }.configureEach {
+        dependsOn(project(":scg-webflux-test").tasks.named("check"))
+    }
 }
 
 java {
@@ -78,11 +78,7 @@ publishing {
         }
     }
 
-    repositories {
-        maven {
-            url = uri(layout.buildDirectory.dir("staging-deploy"))
-        }
-    }
+    repositories { maven { url = uri(layout.buildDirectory.dir("staging-deploy")) } }
 
     tasks.javadoc {
         if (JavaVersion.current().isJava9Compatible) {
@@ -94,19 +90,11 @@ publishing {
 jreleaser {
     project {
         name = artifact
-        languages {
-            java {
-                artifactId = artifact
-            }
-        }
+        languages { java { artifactId = artifact } }
     }
     gitRootSearch = true
     strict = true
-    signing {
-        active = Active.ALWAYS
-        armored = true
-        verify = true
-    }
+    signing { active = Active.ALWAYS }
     deploy {
         maven {
             mavenCentral {
@@ -130,8 +118,4 @@ jreleaser {
             }
         }
     }
-}
-
-tasks.matching { it.name.startsWith("publish", ignoreCase = true) }.configureEach {
-    dependsOn(project(":scg-webflux-test").tasks.named("check"))
 }

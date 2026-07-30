@@ -14,6 +14,7 @@ import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import org.wiremock.spring.ConfigureWireMock
 import org.wiremock.spring.EnableWireMock
 
@@ -50,7 +51,7 @@ class ReactiveGeoLiteGatewayFilterFactoryErrorTest {
                 .isOk
                 .expectHeader()
                 .contentTypeCompatibleWith(MediaType.TEXT_HTML)
-                .expectBody(String::class.java)
+                .expectBody<String>()
                 .returnResult()
                 .responseBody
 

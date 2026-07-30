@@ -1,3 +1,3 @@
 #!/bin/bash
-./gradlew --refresh-dependencies dependencyUpdates -Drevision=release --no-parallel
-./gradlew --stop
+npm run ncu
+./gradlew --refresh-dependencies dependencyUpdates -Drevision=release --no-parallel --no-daemon
